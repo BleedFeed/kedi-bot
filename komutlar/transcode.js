@@ -21,7 +21,7 @@ module.exports = {
         .addComponents(
             new ButtonBuilder()
                 .setLabel('link')
-                .setURL('https://kedi-bot.nedenegelordofg.repl.co/radyo')
+                .setURL('localhost/radyo')
                 .setStyle(ButtonStyle.Link),
         );
         
