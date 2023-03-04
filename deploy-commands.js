@@ -4,8 +4,6 @@ const guildId = process.env.guildId;
 const token = process.env.token;
 const fs = require('node:fs');
 const path = require('node:path');
-console.log(token);
-console.log(clientId);
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
 const commandsPath = path.join(__dirname, 'komutlar');

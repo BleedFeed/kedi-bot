@@ -63,8 +63,6 @@ const server = http.createServer((req,res)=>{
 		console.log('radyoya dinleyici geldi');
 		res.writeHead(200,{'Content-Type' : 'audio/mpeg', 'keep-alive':'true'})
 		writableStreams.push(res);
-
-
 		res.on('error',()=>{
 			writableStreams.splice(writableStreams.indexOf(res),1);
 		});
