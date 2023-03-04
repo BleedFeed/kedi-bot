@@ -8,7 +8,7 @@ const http = require('http');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 
-const transcodes = {};
+const writableStreams = {};
 
 let servers = {};
 
@@ -40,7 +40,7 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 
 	try {
-		await command.execute(interaction,transcodes);
+		await command.execute(interaction,writableStreams);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
@@ -59,14 +59,17 @@ client.once(Events.ClientReady, c => {
 
 const server = http.createServer((req,res)=>{
 	console.log(req.url);
-	if(typeof transcodes[req.url] === 'function'){
+	if(req.url === '/radyo'){
 		res.writeHead(200,{'Content-Type' : 'audio/mpeg', 'keep-alive':'true'})
+		writableStreams.push(res);
+		res.on('error',()=>{
+			writableStreams.splice(writableStreams.indexOf(res),1);
+		});
+		res.on('close',()=>{
+			writableStreams.splice(writableStreams.indexOf(res),1);
+		});
+	}
 
-		transcodes[req.url](req,res);
-	}
-	else{
-		res.writeHead(404);
-	}
 });
 
 server.listen(80);
