@@ -63,7 +63,7 @@ function downloadAndCodec (videoLink) {
         });
 
 
-        await(new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
+        (await new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
         .setAudioChannels(2)
         .setAudioBitRate('128k')
         .save(path.join(process.cwd(), './stream.mp3'),()=>{
