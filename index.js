@@ -69,6 +69,10 @@ const server = http.createServer((req,res)=>{
 			writableStreams.splice(writableStreams.indexOf(res),1);
 		});
 	}
+	else if (req.url === '/'){
+		res.writeHead(200);
+		res.write('asdas famanas');
+	}
 
 });
 
