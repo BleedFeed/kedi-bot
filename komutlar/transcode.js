@@ -11,9 +11,9 @@ module.exports = {
             .setRequired(true)),
     async execute(interaction,writableStreams){
 
-        const stream = ytdl(videoLink,{filter:'audioonly'});
         const videoLink = interaction.options.getString('video');
         const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
+        const stream = ytdl(videoLink,{filter:'audioonly'});
 
         const row = new ActionRowBuilder()
         .addComponents(
