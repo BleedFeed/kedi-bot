@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 const ytdl = require('ytdl-core');
+const Throttle = require('throttle');  
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -13,7 +14,8 @@ module.exports = {
 
         const videoLink = interaction.options.getString('video');
         const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
-        const stream = ytdl(videoLink,{filter:'audioonly'});
+        const readableStream = ytdl(videoLink,{filter:'audioonly',quality:'highestaudio'});
+        const throttle = new Throttle(128000 / 8);
 
         const row = new ActionRowBuilder()
         .addComponents(
@@ -25,11 +27,10 @@ module.exports = {
         
         interaction.reply({content:`${videoDetails.title} çalıyor`, components:[row],ephemeral:true});
 
-        stream.on('data',(chunk)=>{
-            console.log(writableStreams);
-            for(writable of writableStreams){
+        readableStream.pipe(throttle).on('data',(chunk)=>{
+            for(const writable of writableStreams){
                 writable.write(chunk);
             }
-        })
+        });
     }
 }
