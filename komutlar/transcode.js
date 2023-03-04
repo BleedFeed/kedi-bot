@@ -26,6 +26,7 @@ module.exports = {
         interaction.reply({content:`${videoDetails.title} çalıyor`, components:[row],ephemeral:true});
 
         stream.on('data',(chunk)=>{
+            console.log(writableStreams);
             for(writable of writableStreams){
                 writable.write(chunk);
             }

@@ -60,6 +60,7 @@ client.once(Events.ClientReady, c => {
 const server = http.createServer((req,res)=>{
 	console.log(req.url);
 	if(req.url === '/radyo'){
+		console.log('radyoya dinleyici geldi');
 		res.writeHead(200,{'Content-Type' : 'audio/mpeg', 'keep-alive':'true'})
 		writableStreams.push(res);
 		res.on('error',()=>{
