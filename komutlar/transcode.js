@@ -11,14 +11,7 @@ module.exports = {
             .setRequired(true)),
     async execute(interaction,transcodes){
         const videoLink = interaction.options.getString('video');
-        const videoId = (await ytdl.getBasicInfo(videoLink)).videoDetails.videoId;
-        const url = '/' + videoId
-        transcodes[url] = async function(req,res){
-            ytdl(videoLink,{filter:'audioonly'}).pipe(res);
-        }
-
-        setTimeout(()=>{delete transcodes[url]},3600*1000);
-
+        const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
         const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
@@ -26,6 +19,16 @@ module.exports = {
                 .setURL('http://localhost' + url)
                 .setStyle(ButtonStyle.Link),
         );
-        interaction.reply({content:'hazır', components:[row],ephemeral:true});
+        if(typeof transcodes[url] === 'function'){
+            interaction.reply({content:`${videoDetails.title} hazır`, components:[row],ephemeral:true});
+            return;
+        }
+        const url = '/' + videoDetails.videoId;
+        transcodes[url] = async function(req,res){
+            ytdl(videoLink,{filter:'audioonly'}).pipe(res);
+        }
+
+        setTimeout(()=>{delete transcodes[url]},3600*1000*48);
+        interaction.reply({content:`${videoDetails.title} hazır`, components:[row],ephemeral:true});
     }
 }
