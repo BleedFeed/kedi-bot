@@ -1,6 +1,12 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 const ytdl = require('ytdl-core');
-const Throttle = require('throttle');  
+const Throttle = require('throttle'); 
+const fs = require('fs');
+const youtubedl = require('youtube-dl-exec');
+const ffprobe = require('ffprobe');
+const ffmpeg = require('ffmpeg');
+const path = require('path');
+const ffprobeStatic = require('ffprobe-static');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -11,26 +17,48 @@ module.exports = {
 			.setDescription('video linki')
             .setRequired(true)),
     async execute(interaction,writableStreams){
-
+        interaction.defer({ephemeral:true});
         const videoLink = interaction.options.getString('video');
+
+        if(!videoLink.startsWith('https://www.youtube.com') && !videoLink.startsWith('https://youtu.be/')){
+            interaction.editReply({content:'hatalı link'});
+        }
+
         const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
-        const readableStream = ytdl(videoLink,{filter:'audioonly',quality:'highestaudio'});
-        const throttle = new Throttle(128000 / 8);
+        interaction.editReply({content:'', ephemeral:true});
 
-        const row = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setLabel('link')
-                .setURL('localhost/radyo')
-                .setStyle(ButtonStyle.Link),
-        );
-        
-        interaction.reply({content:`${videoDetails.title} çalıyor`, components:[row],ephemeral:true});
+        await downloadAndCodec(videoLink)
 
-        readableStream.pipe(throttle).on('data',(chunk)=>{
-            for(const writable of writableStreams){
+        const bitRate = (await ffprobe(path.join(process.cwd(),'./stream.mp3'), { path: ffprobeStatic.path })).streams[0].bit_rate;
+        const readable = fs.createReadStream('./stream.mp3');
+        const throttle = new Throttle(bitRate / 8);
+
+        readable.pipe(throttle).on('data', (chunk) => {
+            for (const writable of writableStreams) {
                 writable.write(chunk);
-            }
-        });
+            }}
+            );
+
     }
+}
+
+
+function downloadAndCodec (videoLink) {
+    return new Promise(async (resolve,reject)=>{
+        await youtubedl(videoLink,{
+            f:140,
+            o:'streamaac.mp3'
+        });
+
+
+        (await new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
+        .setAudioChannels(2)
+        .setAudioBitRate('128k')
+        .save(path.join(process.cwd(), './stream.mp3'),()=>{
+        resolve();   
+        });
+
+
+    });
+    
 }
