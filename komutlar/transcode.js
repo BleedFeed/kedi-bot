@@ -7,6 +7,7 @@ const ffprobe = require('ffprobe');
 const ffmpeg = require('ffmpeg');
 const path = require('path');
 const ffprobeStatic = require('ffprobe-static');
+const { spawn } = require('node:child_process');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -37,9 +38,11 @@ module.exports = {
 
             
             
-        await downloadAndCodec(videoLink)
+         downloadAndCodec(videoLink).then(async ()=>{
+
 
         const bitRate = (await ffprobe(path.join(process.cwd(),'./stream.mp3'), { path: ffprobeStatic.path })).streams[0].bit_rate;
+            
         const readable = fs.createReadStream(path.join(process.cwd(),'./stream.mp3'));
         const throttle = new Throttle(bitRate / 8);
 
@@ -48,8 +51,9 @@ module.exports = {
         readable.pipe(throttle).on('data', (chunk) => {
             for (const writable of writableStreams) {
                 writable.write(chunk);
-            }}
-            );
+            }});
+                 
+         });
 
     }
 }
@@ -57,20 +61,26 @@ module.exports = {
 
 function downloadAndCodec (videoLink) {
     return new Promise(async (resolve,reject)=>{
-        await youtubedl(videoLink,{
-            f:140,
-            o:'streamaac.mp3'
-        });
 
+        const info = await youtubedl(videoLink, {
+          dumpSingleJson: true,
+          noCheckCertificates: true,
+          noWarnings: true,
+          preferFreeFormats: true,
+          addHeader: [
+            'referer:youtube.com',
+            'user-agent:googlebot'
+          ]});
 
-        (await new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
-        .setAudioChannels(2)
-        .setAudioBitRate('128k')
-        .save(path.join(process.cwd(), './stream.mp3'),()=>{
-        resolve();   
-        });
+            console.log(info);
+            
 
-
+            stream = spawn('ffmpeg', ['-i', 'streamaac.mp3', '-preset','superfast', '-y', 'stream.mp3'], {detached: true});
+        
+            stream.on("close", code => {
+                resolve();
+            });
+            
     });
     
 }
