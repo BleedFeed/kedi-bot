@@ -37,7 +37,7 @@ module.exports = {
         connection.on(VoiceConnectionStatus.Disconnected, (oldState, newState)=>{
         });
 
-        voiceConnection.on('stateChange', (oldState, newState) => {
+        connection.on('stateChange', (oldState, newState) => {
             const oldNetworking = Reflect.get(oldState, 'networking');
             const newNetworking = Reflect.get(newState, 'networking');
           

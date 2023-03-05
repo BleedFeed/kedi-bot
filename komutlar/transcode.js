@@ -97,7 +97,7 @@ async function setUpThrottledStream(fromQueue,writableStreams){
     }
     
     readableThrottled = readable.pipe(new Throttle(128000 / 8));
-    
+
     if(randomBufferInterval){
         clearInterval(randomBufferInterval);
         randomBufferInterval = null;
@@ -116,6 +116,7 @@ async function setUpThrottledStream(fromQueue,writableStreams){
 
         randomBufferInterval = setInterval(()=>
         {
+            console.log('Sex');
             for (const writable of writableStreams){
                 writable.write(lastChunk);
             }
