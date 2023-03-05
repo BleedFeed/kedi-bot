@@ -108,13 +108,13 @@ async function setUpThrottledStream(fromQueue,writableStreams){
         console.log('stream kapandı');
         if(fromQueue){
             queue.shift();
-            randomBufferInterval = setInterval(()=>
-            {
-                for (const writable of writableStreams){
-                    writable.write(Buffer.from([31,31,31,31,31,31,31]));
-                }
-            },500);
         }
+        randomBufferInterval = setInterval(()=>
+        {
+            for (const writable of writableStreams){
+                writable.write(Buffer.from([31,31,31,31,31,31,31]));
+            }
+        },500);
         setUpThrottledStream(queue.length !== 0,writableStreams);
     })
 
