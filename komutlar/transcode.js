@@ -1,15 +1,16 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
+require('dotenv').config();
 const ytdl = require('ytdl-core');
 const Throttle = require('throttle');
 const fs = require('fs');
-const youtubedl = require('youtube-dl-exec');
-const ffprobe = require('ffprobe');
-const ffmpeg = require('ffmpeg');
 const path = require('path');
-const ffprobeStatic = require('ffprobe-static');
 const { Converter } = require("ffmpeg-stream")
-const { spawn } = require('node:child_process');
+const hostname = process.env.hostname;
+const songs = fs.readdirSync(path.join(process.cwd(),'/songs/'));
+const ytlist = require('youtube-playlist');
+
 let readableThrottled = null;
+let queue = [];
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -20,46 +21,95 @@ module.exports = {
 			.setDescription('video linki')
             .setRequired(true)),
     async execute(interaction,writableStreams){
-        interaction.deferReply({ephemeral:true});
+
         const videoLink = interaction.options.getString('video');
 
         if(!videoLink.startsWith('https://www.youtube.com') && !videoLink.startsWith('https://youtu.be/')){
-            interaction.editReply({content:'hatalı link'});
+            console.log('hatalı link');
+            interaction.reply({content:'Hatalı Link ! Sadece youtube video ve playlist linkleri geçerlidir',ephemeral:true});
+            return;
         }
 
-
         const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
+
+        queue.push({title:videoDetails.title,url:videoDetails.video_url});
+
+        if(readableThrottled){
+            interaction.reply('Sıraya eklendi');
+            return;
+        }
 
         const row = new ActionRowBuilder()
                 .addComponents(
                         new ButtonBuilder()
                                 .setLabel('Radyo Link')
-                                .setURL('https://kedi-bot.nedenegelordofg.repl.co/radyo')
+                                .setURL(hostname + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
 
+        setUpThrottledStream(true,writableStreams);
 
+        interaction.reply({content:videoDetails.title + ' çalıyor', components:[row]});
+
+    }
+}
+
+function getReadableAudioStream(video){
+
+    return new Promise(async(resolve,reject)=>{
 
         const converter = new Converter();
         const input = converter.createInputStream();
-        (await ytdl(videoLink,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
-        const readable = converter.createOutputStream({
-            'f':'mp3',
-            'codec:a': 'libmp3lame',
-            'b:a':'128k'
-        })
-        if(readableThrottled){
-            readableThrottled.destroy();
+        if(video.startsWith('https')){
+            (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
         }
-        readableThrottled = new Throttle(128000 / 8);
-        readable.pipe(readableThrottled).on('data', (chunk) => {
-            for (const writable of writableStreams) {
-                writable.write(chunk);
-            }});
+        else{
+            fs.createReadStream(video).pipe(input);
+        }
 
-        interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
+        resolve(converter);
 
-        await converter.run();
+    });
+}
 
+async function setUpThrottledStream(fromQueue,writableStreams){
+
+    let converter;
+
+    if(fromQueue){
+       converter = await getReadableAudioStream(queue[0].url);
     }
+    else{
+        converter = await getReadableAudioStream(path.join(process.cwd(),'songs',songs[Math.floor(Math.random() * songs.length)]));
+    }
+
+
+    const readable = converter.createOutputStream({
+        'f':'mp3',
+        'codec:a': 'libmp3lame',
+        'b:a':'128k'
+    });
+
+    if(readableThrottled){
+    readableThrottled.destroy();
+    }
+    
+    readableThrottled = readable.pipe(new Throttle(128000 / 8));
+
+    readableThrottled.on('data', (chunk) => {
+        for (const writable of writableStreams) {
+            writable.write(chunk);
+        }});
+    readableThrottled.on('close',()=>{
+        console.log('stream kapandı');
+        if(fromQueue){
+            queue.shift();
+        }
+        setUpThrottledStream(queue.length !== 0,writableStreams);
+    })
+
+    await converter.run();
+    
+
+
 }
