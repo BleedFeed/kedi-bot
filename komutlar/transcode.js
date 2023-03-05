@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { Converter } = require("ffmpeg-stream")
 const hostname = process.env.hostname;
-const songs = ['https://youtu.be/3_-a9nVZYjk'];
+const songs = ['https://www.youtube.com/watch?v=Ynlfvw2QgE4'];
 const ytlist = require('youtube-playlist');
 const port = process.env.port
 
@@ -75,7 +75,7 @@ async function setUpThrottledStream(fromQueue,writableStreams){
        converter = await getReadableAudioStream(queue[0].url);
     }
     else{
-        converter = await getReadableAudioStream(path.join(process.cwd(),'songs',songs[Math.floor(Math.random() * songs.length)]));
+        converter = await getReadableAudioStream(songs[Math.floor(Math.random() * songs.length)].url);
     }
 
 
