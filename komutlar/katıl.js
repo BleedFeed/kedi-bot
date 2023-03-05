@@ -25,7 +25,7 @@ module.exports = {
         });
 
 
-        let urlStream = hostname.replace('port',port) + '/radyo';
+        let urlStream = hostname + '/radyo';
         console.log(urlStream);
         const resource =  voice.createAudioResource(urlStream);
         const player =  voice.createAudioPlayer();
@@ -35,7 +35,7 @@ module.exports = {
             connection.subscribe(player);
             player.play(resource);
         });
-        
+
         connection.on('stateChange', (oldState, newState) => {
             const oldNetworking = Reflect.get(oldState, 'networking');
             const newNetworking = Reflect.get(newState, 'networking');

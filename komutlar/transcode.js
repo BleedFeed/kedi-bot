@@ -44,7 +44,7 @@ module.exports = {
                 .addComponents(
                         new ButtonBuilder()
                                 .setLabel('Radyo Link')
-                                .setURL(hostname.replace('port',port) + '/radyo')
+                                .setURL(hostname + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
 
