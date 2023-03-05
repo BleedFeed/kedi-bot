@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const http = require('http');
-
+const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 
 const writableStreams = [];
@@ -69,14 +69,13 @@ const server = http.createServer((req,res)=>{
 		});
 	}
 	else if (req.url === '/'){
-		res.writeHead(200);
-		res.write('asdas famanas');
+		console.log('Anasayfa İstek');
+		res.writeHead(200,{'Content-Type':'text/plain ;charset=utf-8'});
+		res.end('Hoşgeldiniz');
 	}
 
 });
 
-server.listen(80);
-
-
+server.listen(port);
 
 client.login(token);

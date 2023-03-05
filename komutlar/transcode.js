@@ -6,8 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const { Converter } = require("ffmpeg-stream")
 const hostname = process.env.hostname;
-const songs = fs.readdirSync(path.join(process.cwd(),'/songs/'));
+const songs = ['https://youtu.be/3_-a9nVZYjk'];
 const ytlist = require('youtube-playlist');
+const port = process.env.port
 
 let readableThrottled = null;
 let queue = [];
@@ -43,7 +44,7 @@ module.exports = {
                 .addComponents(
                         new ButtonBuilder()
                                 .setLabel('Radyo Link')
-                                .setURL(hostname + '/radyo')
+                                .setURL(hostname.replace('port',port) + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
 
@@ -60,13 +61,7 @@ function getReadableAudioStream(video){
 
         const converter = new Converter();
         const input = converter.createInputStream();
-        if(video.startsWith('https')){
-            (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
-        }
-        else{
-            fs.createReadStream(video).pipe(input);
-        }
-
+        (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
         resolve(converter);
 
     });
@@ -74,8 +69,6 @@ function getReadableAudioStream(video){
 
 async function setUpThrottledStream(fromQueue,writableStreams){
 
-    let lastChunk;
-    let randomBufferInterval;
     let converter;
 
     if(fromQueue){
@@ -98,11 +91,6 @@ async function setUpThrottledStream(fromQueue,writableStreams){
     
     readableThrottled = readable.pipe(new Throttle(128000 / 8));
 
-    if(randomBufferInterval){
-        clearInterval(randomBufferInterval);
-        randomBufferInterval = null;
-    }
-
     readableThrottled.on('data', (chunk) => {
         for (const writable of writableStreams) {
             writable.write(chunk);
@@ -113,15 +101,6 @@ async function setUpThrottledStream(fromQueue,writableStreams){
         if(fromQueue){
             queue.shift();
         }
-
-        randomBufferInterval = setInterval(()=>
-        {
-            console.log('Sex');
-            for (const writable of writableStreams){
-                writable.write(lastChunk);
-            }
-        },100);
-
         setUpThrottledStream(queue.length !== 0,writableStreams);
     })
 

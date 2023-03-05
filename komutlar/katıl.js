@@ -2,6 +2,7 @@ const {SlashCommandBuilder} = require('discord.js');
 const { VoiceConnectionStatus } = require('@discordjs/voice');
 const voice = require('@discordjs/voice');
 const hostname = process.env.hostname;
+const port = process.env.port;
 
 module.exports = {
     data:new SlashCommandBuilder()
@@ -24,7 +25,8 @@ module.exports = {
         });
 
 
-        let urlStream = hostname + '/radyo';
+        let urlStream = hostname.replace('port',port) + '/radyo';
+        console.log(urlStream);
         const resource =  voice.createAudioResource(urlStream);
         const player =  voice.createAudioPlayer();
 
@@ -33,10 +35,7 @@ module.exports = {
             connection.subscribe(player);
             player.play(resource);
         });
-
-        connection.on(VoiceConnectionStatus.Disconnected, (oldState, newState)=>{
-        });
-
+        
         connection.on('stateChange', (oldState, newState) => {
             const oldNetworking = Reflect.get(oldState, 'networking');
             const newNetworking = Reflect.get(newState, 'networking');
