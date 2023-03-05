@@ -5,5 +5,6 @@
         pkgs.yarn
         pkgs.replitPackages.jest
         pkgs.python3
+        pkgs.ffmpeg
 	];
 }

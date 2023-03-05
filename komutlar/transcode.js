@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 const ytdl = require('ytdl-core');
-const Throttle = require('throttle'); 
+const Throttle = require('throttle');
 const fs = require('fs');
 const youtubedl = require('youtube-dl-exec');
 const ffprobe = require('ffprobe');
@@ -8,7 +8,8 @@ const ffmpeg = require('ffmpeg');
 const path = require('path');
 const ffprobeStatic = require('ffprobe-static');
 const { Converter } = require("ffmpeg-stream")
-
+const { spawn } = require('node:child_process');
+let readableThrottled = null;
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -37,51 +38,37 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
-            
-            
-        await downloadAndCodec(videoLink)
 
-        const bitRate = (await ffprobe(path.join(process.cwd(),'./stream.mp3'), { path: ffprobeStatic.path })).streams[0].bit_rate;
-        const readable = fs.createReadStream(path.join(process.cwd(),'./stream.mp3'));
-        const throttle = new Throttle(bitRate / 8);
 
-        interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
-            
-        readable.pipe(throttle).on('data', (chunk) => {
+        const converter = new Converter();
+        const input = converter.createInputStream();
+        (await ytdl(videoLink,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
+        const readable = converter.createOutputStream({
+            'f':'mp3',
+            'codec:a': 'libmp3lame',
+            'b:a':'128k'
+        })
+        if(readableThrottled){
+            readableThrottled.destroy();
+        }
+        readableThrottled = new Throttle(128000 / 8);
+        readable.pipe(readableThrottled).on('data', (chunk) => {
             for (const writable of writableStreams) {
                 writable.write(chunk);
-            }}
-            );
+            }});
+
+            interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
+
+        await converter.run();
 
     }
 }
 
 
 function downloadAndCodec (videoLink) {
-    // return new Promise(async (resolve,reject)=>{
-    //     await youtubedl(videoLink,{
-    //         f:140,
-    //         o:'streamaac.mp3'
-    //     });
-
-        const converter = new Converter();
-
-        const input = converter.createInputStream().pipe(await ytdl(videoLink,{filter:audioonly,quality:'highestaudio'}));
-
-
-
-    
-        converter.createOutputStream({f:'mp3',y:true,i:i})
-
-        // (await new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
-        // .setAudioChannels(2)
-        // .setAudioBitRate('128k')
-        // .addCommand()
-        // .save(path.join(process.cwd(), './stream.mp3'),()=>{
-        // resolve();   
-        // });
+    return new Promise(async (resolve,reject)=>{
 
 
     });
-    
+
 }
