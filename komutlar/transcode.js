@@ -57,18 +57,9 @@ module.exports = {
                 writable.write(chunk);
             }});
 
-            interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
+        interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
         await converter.run();
 
     }
-}
-
-
-function downloadAndCodec (videoLink) {
-    return new Promise(async (resolve,reject)=>{
-
-
-    });
-
 }
