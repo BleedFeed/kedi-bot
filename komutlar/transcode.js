@@ -74,6 +74,7 @@ function getReadableAudioStream(video){
 
 async function setUpThrottledStream(fromQueue,writableStreams){
 
+    var randomBufferInterval;
     let converter;
 
     if(fromQueue){
@@ -95,7 +96,10 @@ async function setUpThrottledStream(fromQueue,writableStreams){
     }
     
     readableThrottled = readable.pipe(new Throttle(128000 / 8));
-
+    if(randomBufferInterval){
+        clearInterval(randomBufferInterval);
+        randomBufferInterval = null;
+    }
     readableThrottled.on('data', (chunk) => {
         for (const writable of writableStreams) {
             writable.write(chunk);
@@ -104,6 +108,12 @@ async function setUpThrottledStream(fromQueue,writableStreams){
         console.log('stream kapandı');
         if(fromQueue){
             queue.shift();
+            randomBufferInterval = setInterval(()=>
+            {
+                for (const writable of writableStreams){
+                    writable.write(Buffer.from([31,31,31,31,31,31,31]));
+                }
+            },500);
         }
         setUpThrottledStream(queue.length !== 0,writableStreams);
     })

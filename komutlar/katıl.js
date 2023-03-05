@@ -35,7 +35,6 @@ module.exports = {
         });
 
         connection.on(VoiceConnectionStatus.Disconnected, (oldState, newState)=>{
-           console.log(oldState);
         });
 
         voiceConnection.on('stateChange', (oldState, newState) => {
