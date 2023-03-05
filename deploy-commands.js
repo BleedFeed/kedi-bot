@@ -1,10 +1,8 @@
 const { REST, Routes } = require('discord.js');
-require('dotenv').config();
-const clientId = process.env.clientId;
-const guildId = process.env.guildId;
-const token = process.env.token;
+const { clientId, guildId, token } = require('./config.json');
 const fs = require('node:fs');
 const path = require('node:path');
+
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
 const commandsPath = path.join(__dirname, 'komutlar');
