@@ -59,7 +59,7 @@ client.once(Events.ClientReady, c => {
 const server = http.createServer((req,res)=>{
 	if(req.url === '/radyo'){
 		console.log('radyoya dinleyici geldi');
-		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive','cache-control': 'no-cache, no-store','pragma': 'no-cache','transfer-encoding': 'chunked'});
+		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive','cache-control': 'no-cache, no-store','pragma': 'no-cache'});
 		writableStreams.push(res);
 		res.on('error',()=>{
 			writableStreams.splice(writableStreams.indexOf(res),1);
