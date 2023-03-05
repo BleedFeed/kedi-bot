@@ -7,6 +7,8 @@ const ffprobe = require('ffprobe');
 const ffmpeg = require('ffmpeg');
 const path = require('path');
 const ffprobeStatic = require('ffprobe-static');
+const { Converter } = require("ffmpeg-stream")
+
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -56,19 +58,28 @@ module.exports = {
 
 
 function downloadAndCodec (videoLink) {
-    return new Promise(async (resolve,reject)=>{
-        await youtubedl(videoLink,{
-            f:140,
-            o:'streamaac.mp3'
-        });
+    // return new Promise(async (resolve,reject)=>{
+    //     await youtubedl(videoLink,{
+    //         f:140,
+    //         o:'streamaac.mp3'
+    //     });
+
+        const converter = new Converter();
+
+        const input = converter.createInputStream().pipe(await ytdl(videoLink,{filter:audioonly,quality:'highestaudio'}));
 
 
-        (await new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
-        .setAudioChannels(2)
-        .setAudioBitRate('128k')
-        .save(path.join(process.cwd(), './stream.mp3'),()=>{
-        resolve();   
-        });
+
+    
+        converter.createOutputStream({f:'mp3',y:true,i:i})
+
+        // (await new ffmpeg(path.join(process.cwd(),'./streamaac.mp3')))
+        // .setAudioChannels(2)
+        // .setAudioBitRate('128k')
+        // .addCommand()
+        // .save(path.join(process.cwd(), './stream.mp3'),()=>{
+        // resolve();   
+        // });
 
 
     });
