@@ -91,8 +91,11 @@ async function setUpThrottledStream(fromQueue,writableStreams){
 
     readableThrottled.on('data', (chunk) => {
         console.log('writable streams : ' + writableStreams.length);
-        for (const writable of writableStreams) {
-            writable.write(chunk);
+        for (let i = 0; i < writableStreams.length;i++) {
+            if(writableStreams[i].socket.destroyed){
+                writableStreams.splice(i,1);
+            }
+            writableStreams[i].write(chunk);
         }});
 
     readableThrottled.on('close',()=>{

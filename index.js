@@ -62,14 +62,7 @@ const server = http.createServer((req,res)=>{
 		console.log('radyoya dinleyici geldi');
 		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive'});
 		res.socket.setKeepAlive(true);
-		res.socket.on('close',(hadError)=>{
-			console.log(hadError);
-			writableStreams.splice(writableStreams.indexOf(res),1);
-		});
-
 		writableStreams.push(res);
-
-
 	}
 	else if (req.url === '/'){
 		console.log('Anasayfa İstek');
