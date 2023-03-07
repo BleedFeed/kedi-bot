@@ -1,6 +1,0 @@
-{
-  "name" : "kedi-bot",
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {
-  }
-}
