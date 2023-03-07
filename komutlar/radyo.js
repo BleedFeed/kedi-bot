@@ -1,8 +1,7 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 require('dotenv').config();
 const YTDlpWrap = require('yt-dlp-wrap').default;
-const path = require('path');
-const ytDlpWrap = new YTDlpWrap(path.join(process.cwd(), process.platform === 'linux' ? 'yt-dlp' : 'yt-dlp.exe'));
+const ytDlpWrap = new YTDlpWrap('./bin/' + process.platform === 'linux' ? 'yt-dlp' : 'yt-dlp.exe');
 const {getBasicInfo} = require('ytdl-core');
 const Throttle = require('throttle');
 const { Converter } = require("ffmpeg-stream");
