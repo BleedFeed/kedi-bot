@@ -61,16 +61,19 @@ const server = http.createServer((req,res)=>{
 	if(req.url === '/radyo'){
 		console.log('radyoya dinleyici geldi');
 		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive','cache-control': 'no-cache, no-store','pragma': 'no-cache'});
-		console.log(queue);
+		res.socket.setKeepAlive(true);
+		res.socket.on('close',(hadError)=>{
+			console.log(hadError);
+		})
+		res.socket.on('end',()=>{
+			console.log(res.socket.address());
+			console.log(res.socket.bytesWritten);
+			console.log('end');
+			writableStreams.splice(writableStreams.indexOf(res),1);
+		});
 		writableStreams.push(res);
-		res.on('error',()=>{
-			console.log('error');
-			writableStreams.splice(writableStreams.indexOf(res),1);
-		});
-		res.on('close',()=>{
-			console.log('close');
-			writableStreams.splice(writableStreams.indexOf(res),1);
-		});
+
+
 	}
 	else if (req.url === '/'){
 		console.log('Anasayfa İstek');

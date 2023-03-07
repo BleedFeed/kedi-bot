@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 require('dotenv').config();
-const YTDlpWrap = require('yt-dlp-wrap').default;
-const ytDlpWrap = new YTDlpWrap('./bin/' + process.platform === 'linux' ? 'yt-dlp' : 'yt-dlp.exe');
-const {getBasicInfo} = require('ytdl-core');
+const ytdl = require('ytdl-core');
 const Throttle = require('throttle');
 const { Converter } = require("ffmpeg-stream");
 const hostname = process.env.hostname;
@@ -30,7 +28,7 @@ module.exports = {
             return;
         }
 
-        const videoDetails = (await getBasicInfo(videoLink)).videoDetails;
+        const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
 
         queue.push({title:videoDetails.title,url:videoDetails.video_url});
 
@@ -60,15 +58,7 @@ function getReadableAudioStream(video){
 
         const converter = new Converter();
         const input = converter.createInputStream();
-
-        ytDlpWrap.execStream([
-            video,
-            '-f',
-            'ba',
-        ]).pipe(input);
-
-
-        // (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
+        (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
         resolve(converter);
 
     });
@@ -96,7 +86,7 @@ async function setUpThrottledStream(fromQueue,writableStreams){
     readableThrottled.destroy();
     }
     
-    readableThrottled = readable.pipe(new Throttle(128000 / 8));
+    readableThrottled = readable.pipe(new Throttle(16384));
 
     readableThrottled.on('data', (chunk) => {
         for (const writable of writableStreams) {
