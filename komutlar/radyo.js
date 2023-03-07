@@ -80,7 +80,6 @@ async function setUpThrottledStream(fromQueue,writableStreams){
         'f':'mp3',
         'codec:a': 'libmp3lame',
         'b:a':'128k',
-        'af':`asetrate=${44100*1.5},aresample=44100,atempo=${1/1.5}`
     });
 
     if(readableThrottled){
@@ -90,7 +89,6 @@ async function setUpThrottledStream(fromQueue,writableStreams){
     readableThrottled = readable.pipe(new Throttle(16384));
 
     readableThrottled.on('data', (chunk) => {
-        console.log('writable streams : ' + writableStreams.length);
         for (let i = 0; i < writableStreams.length;i++) {
             writableStreams[i].write(chunk);
         }});

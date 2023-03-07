@@ -61,8 +61,12 @@ const server = http.createServer((req,res)=>{
 	if(req.url === '/radyo'){
 		console.log('radyoya dinleyici geldi');
 		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive'});
-		res.socket.on('end',()=>{
+		res.socket.once('end',()=>{
+			console.log('bağlantı gitti');
 			writableStreams.splice(writableStreams.indexOf(res),1);
+		});
+		res.socket.on('error',(error)=>{
+			console.log(error)
 		});
 		res.socket.setKeepAlive(true);
 		writableStreams.push(res);
