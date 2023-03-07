@@ -22,6 +22,8 @@
     "throttle": "^1.0.3",
     "youtube-dl-exec": "^2.4.0",
     "youtube-playlist": "^1.0.4",
+    "yt-dlp-wrap": "^2.3.11",
+    "yt-dlp-wrap-plus": "^2.3.16",
     "ytdl-core": "^4.11.2",
     "ytubes": "^1.2.0"
   }
