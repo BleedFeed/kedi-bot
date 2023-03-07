@@ -18,36 +18,6 @@ module.exports = {
             return;
         }
 
-        let connection = await voice.joinVoiceChannel({
-            channelId: interaction.member.voice.channel.id,
-            guildId: interaction.guild.id,
-            adapterCreator: interaction.guild.voiceAdapterCreator
-        });
-
-
-        let urlStream = hostname + '/radyo';
-        console.log(urlStream);
-        const resource =  voice.createAudioResource(urlStream);
-        const player =  voice.createAudioPlayer();
-
-        connection.on(VoiceConnectionStatus.Ready, (oldState, newState) => {
-            console.log('bağlantı hazır');
-            connection.subscribe(player);
-            player.play(resource);
-        });
-
-        connection.on('stateChange', (oldState, newState) => {
-            const oldNetworking = Reflect.get(oldState, 'networking');
-            const newNetworking = Reflect.get(newState, 'networking');
-          
-            const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
-              const newUdp = Reflect.get(newNetworkState, 'udp');
-              clearInterval(newUdp?.keepAliveInterval);
-            }
-          
-            oldNetworking?.off('stateChange', networkStateChangeHandler);
-            newNetworking?.on('stateChange', networkStateChangeHandler);
-          });
-
+        // TODO KATIL VE RADYOYU ÇALMAYA BAŞLA
     }
 }
