@@ -13,7 +13,6 @@ const nodeshout  = require('nodeshout');
 
 
 const youtubedl = require('youtube-dl-exec');
-const youtubedl = require('youtube-dl-exec');
 
 
 module.exports = {
@@ -80,11 +79,8 @@ module.exports = {
 }
 
 function getAudioStream(url){
-function getAudioStream(url){
 
     return new Promise(async(resolve,reject)=>{
-
-        const ytdlStream = await ytdl(url,{filter:'audioonly',quality:'highestaudio'});
 
         const ytdlStream = await ytdl(url,{filter:'audioonly',quality:'highestaudio'});
 
