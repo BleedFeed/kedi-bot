@@ -156,14 +156,15 @@ async function sendData(shout){
         console.log(`Bytes read: ${totalBytesRead} / ${fileSize}`);
 
         // If 0 bytes read, it means that we're finished reading
-        if (bytesRead === 0) {
-            console.log('bitti bytesRead 0');
-            break;
-        }
 
         // Send the data and wait for the next chunk
         shout.send(buf, bytesRead);
 
+
+        if (bytesRead < chunkSize) {
+            console.log('bitti bytesRead');
+            break;
+        }
         // Get the how much time we should wait before sending the next chunk and wait
         // This will NOT block the I/O
         const delay = shout.delay();
