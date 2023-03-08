@@ -52,7 +52,7 @@ module.exports = {
 
         // Configure it
         shout.setHost('localhost');
-        shout.setPort(8000);
+        shout.setPort(process.env.port);
         shout.setUser('source');
         shout.setPassword('hackme');
         shout.setMount('radyo');
