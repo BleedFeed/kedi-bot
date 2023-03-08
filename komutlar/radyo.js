@@ -126,16 +126,17 @@ async function setUpStream(fromQueue,client){
 
 async function sendData(shout){
         const chunkSize = 8192;
-
-        mainStream.on('readable',()=>{
-            console.log('readable');
-            let data = mainStream.read(chunkSize);
-            if(!data){
-                return;
+        mainStream.on('readable', function() {
+            // There is some data to read now.
+            let data;
+          
+            while ((data = this.read(chunkSize)) !== null) {
+              console.log(data.length);
             }
-            console.log(data.length);
-            shout.send(data,data.length);
+          });
 
-            shout.sync();
-        })
-    }
+
+            // shout.send(data,data.length);
+
+            // shout.sync();
+} 
