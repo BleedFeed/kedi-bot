@@ -7,6 +7,12 @@ const hostname = process.env.hostname;
 const queue = require('../utils/queue');
 const ytlist = require('youtube-playlist');
 const songs = require('../utils/songs');
+const fs = require('fs');
+const {spawn} = require('child_process');
+
+
+
+const youtubedl = require('youtube-dl-exec')
 
 let readableThrottled = null;
 
@@ -45,7 +51,7 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
-        setUpThrottledStream(true,writableStreams);
+        setUpThrottledStream(false,writableStreams);
 
         interaction.reply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -55,7 +61,6 @@ module.exports = {
 function getReadableAudioStream(video){
 
     return new Promise(async(resolve,reject)=>{
-
         const converter = new Converter();
         const input = converter.createInputStream();
         (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
@@ -66,21 +71,51 @@ function getReadableAudioStream(video){
 
 async function setUpThrottledStream(fromQueue,writableStreams){
 
-    let converter;
+    // let converter;
 
-    if(fromQueue){
-       converter = await getReadableAudioStream(queue[0].url);
-    }
-    else{
-        converter = await getReadableAudioStream(songs[Math.floor(Math.random() * songs.length)]);
-    }
+    // if(fromQueue){
+    //    converter = await getReadableAudioStream(queue[0].url);
+    // }
+    // else{
+    //     converter = await getReadableAudioStream(songs[Math.floor(Math.random() * songs.length)]);
+    // }
 
 
-    const readable = converter.createOutputStream({
-        'f':'mp3',
-        'codec:a': 'libmp3lame',
-        'b:a':'128k',
+    // const readable = converter.createOutputStream({
+    //     'f':'mp3',
+    //     'codec:a': 'libmp3lame',
+    //     'b:a':'128k',
+    // });
+
+
+
+
+    const output = await youtubedl(queue[0].url, {
+        dumpSingleJson: true,
+        noCheckCertificates: true,
+        noWarnings: true,
+        preferFreeFormats: true,
+        addHeader: [
+        'referer:youtube.com',
+        'user-agent:googlebot'
+        ]
+    
     });
+
+    const format = output.formats.filter((format)=> format.format_id == '251')
+
+    const ytdlStream = await ytdl(queue[0].url,{filter:'audioonly',quality:'highestaudio'});
+
+    const ffmpegProcess = spawn('ffmpeg',[
+    '-i','stream.',
+    '-f','mp3',
+    '-ar','44100',
+    '-ac','2',
+    '-codec:a','libmp3lame',
+    '-b:a','128k',
+    'pipe:4']);
+
+    // const readable = process.stdin;
 
     if(readableThrottled){
     readableThrottled.destroy();
@@ -101,8 +136,8 @@ async function setUpThrottledStream(fromQueue,writableStreams){
         setUpThrottledStream(queue.length !== 0,writableStreams);
     })
 
-    await converter.run();
+    // await converter.run();
     
 
 
-}
+}         
