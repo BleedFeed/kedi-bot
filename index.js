@@ -57,11 +57,4 @@ client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
-
-const tsharkprocess = spawn('sudo',['tshark','-i','-f','eth0','-w','dump.pcap']);
-
-tsharkprocess.stdout.on('data',(chunk)=>{
-	console.log(chunk.toString());
-})
-
 client.login(token);
