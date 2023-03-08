@@ -91,7 +91,7 @@ function getAudioStream(url){
         '-ac','2',
         '-codec:a','libmp3lame',
         '-b:a','128k',
-        'output.mp3'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
+        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
         resolve(ffmpegProcess.stdio[4]);
     });
