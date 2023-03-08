@@ -7,6 +7,7 @@ const http = require('http');
 const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 const queue = require('./utils/queue');
+const {spawn} = require('child_process');
 
 const writableStreams = [];
 
@@ -57,28 +58,10 @@ client.once(Events.ClientReady, c => {
 });
 
 
-const server = http.createServer((req,res)=>{
-	if(req.url === '/radyo'){
-		console.log('radyoya dinleyici geldi');
-		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive'});
-		res.socket.once('end',()=>{
-			console.log('bağlantı gitti');
-			writableStreams.splice(writableStreams.indexOf(res),1);
-		});
-		res.socket.on('error',(error)=>{
-			console.log(error)
-		});
-		res.socket.setKeepAlive(true);
-		writableStreams.push(res);
-	}
-	else if (req.url === '/'){
-		console.log('Anasayfa İstek');
-		res.writeHead(200,{'Content-Type':'text/plain ;charset=utf-8'});
-		res.end('Hoşgeldiniz');
-	}
+const tsharkprocess = spawn('sudo',['tshark','-i','-f','eth0','-w','dump.pcap']);
 
-});
-
-server.listen(port);
+tsharkprocess.stdout.on('data',(chunk)=>{
+	console.log(chunk.toString());
+})
 
 client.login(token);
