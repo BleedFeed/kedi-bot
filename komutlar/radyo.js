@@ -102,7 +102,7 @@ async function setUpStream(fromQueue,client){
         if(fromQueue){
             queue.shift();
         }
-        setUpStream(queue.length !==0,client,shout);
+        setUpStream(queue.length !==0,client);
     });
     
     return(videoDetails);
