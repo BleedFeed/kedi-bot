@@ -20,6 +20,8 @@
     "ffprobe": "^1.1.2",
     "ffprobe-static": "^3.1.0",
     "libsodium-wrappers": "^0.7.11",
+    "nodeshout": "^2.0.0",
+    "readable-stream-clone": "^0.0.7",
     "throttle": "^1.0.3",
     "youtube-dl-exec": "^2.4.0",
     "youtube-playlist": "^1.0.4",
