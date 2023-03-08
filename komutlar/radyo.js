@@ -117,6 +117,7 @@ async function setUpStream(fromQueue,client){
     readable.pipe(mainStream,{end:false});
 
     readable.on('end',()=>{
+        readable.unpipe();
        setUpStream(queue.length !== 0,client);
     })
     nowPlaying.set({title:videoDetails.title},client);
@@ -125,7 +126,7 @@ async function setUpStream(fromQueue,client){
 }
 
 async function sendData(shout){
-        const chunkSize = 4096;
+        const chunkSize = 8192;
         mainStream.on('readable', function() {
             // There is some data to read now.
             let data;
