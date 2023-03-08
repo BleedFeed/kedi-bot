@@ -65,7 +65,7 @@ module.exports = {
 
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
-        sendData();
+        sendData(shout,interaction.client);
         
         // Reading & sending loop
 
