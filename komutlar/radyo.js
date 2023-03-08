@@ -133,7 +133,7 @@ async function setUpStream(fromQueue,client){
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function sendData(shout){
+async function sendData(shout,client){
 
     const fileHandle = await fs.open('./output.mp3');
     const stats = await fileHandle.stat();
@@ -162,7 +162,8 @@ async function sendData(shout){
 
 
         if (bytesRead < chunkSize) {
-            console.log('bitti bytesRead');
+            await setUpStream(queue.length !==0,client);
+            sendData(shout,client);
             break;
         }
         // Get the how much time we should wait before sending the next chunk and wait
