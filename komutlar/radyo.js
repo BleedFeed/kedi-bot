@@ -67,6 +67,16 @@ module.exports = {
 
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
+        mainStream.on('close',()=>{
+            console.log('mainstream close');
+        })
+        mainStream.on('end',()=>{
+            console.log('mainstream end');
+        })
+        mainStream.on('error',()=>{
+            console.log('mainstream error');
+        });
+
         sendData(shout,interaction.client);
         
         // Reading & sending loop
@@ -132,7 +142,6 @@ async function sendData(shout){
             let data;
           
             while ((data = this.read(chunkSize)) !== null) {
-              console.log(data.length);
               shout.send(data,data.length);
 
               shout.sync();
