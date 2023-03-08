@@ -132,11 +132,12 @@ async function sendData(shout){
           
             while ((data = this.read(chunkSize)) !== null) {
               console.log(data.length);
+              shout.send(data,data.length);
+
+              shout.sync();
             }
           });
 
 
-            // shout.send(data,data.length);
 
-            // shout.sync();
 } 
