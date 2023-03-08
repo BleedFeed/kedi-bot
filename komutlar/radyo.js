@@ -125,7 +125,7 @@ async function setUpStream(fromQueue,client){
 }
 
 async function sendData(shout){
-        const chunkSize = 8192;
+        const chunkSize = 4096;
         mainStream.on('readable', function() {
             // There is some data to read now.
             let data;
