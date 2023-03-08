@@ -101,9 +101,11 @@ function getAudioStream(url){
         '-ac','2',
         '-codec:a','libmp3lame',
         '-b:a','128k',
-        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
+        'output.mp3'],{stdio:['ignore','ignore','ignore','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4]);
+        ffmpegProcess.on('close',()=>{
+            resolve();
+        })
     });
 }
 
@@ -113,40 +115,60 @@ async function setUpStream(fromQueue,client){
     let videoDetails;
 
     if(fromQueue){
-        readable = await getAudioStream(queue[0]);
+        await getAudioStream(queue[0]);
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        readable = await getAudioStream(song);
+        await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
 
     }
 
-    readable.pipe(mainStream,{end:false});
-
-    readable.on('end',()=>{
-        readable.unpipe();
-       setUpStream(queue.length !== 0,client);
-    })
     nowPlaying.set({title:videoDetails.title},client);
 
     return(videoDetails);
 }
 
-async function sendData(shout){
-        const chunkSize = 8192;
-        mainStream.on('readable', function() {
-            // There is some data to read now.
-            let data;
-          
-            while ((data = this.read(chunkSize)) !== null) {
-              shout.send(data,data.length);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-              shout.sync();
-            }
-          });
+async function sendData(shout){
+
+    const fileHandle = await fs.open('./output.mp3');
+    const stats = await fileHandle.stat();
+    const fileSize = stats.size;
+    const chunkSize = 65536;
+    const buf = Buffer.alloc(chunkSize);
+    let totalBytesRead = 0;
+
+    // Reading & sending loop
+    while (totalBytesRead < fileSize) {
+        // For the latest chunk, its size may be smaller than the desired
+        const readLength = (totalBytesRead + chunkSize) <= fileSize ?
+            chunkSize :
+            fileSize - totalBytesRead;
+
+        // Read file
+        const {bytesRead} = await fileHandle.read(buf, 0, readLength, totalBytesRead);
+
+        totalBytesRead = totalBytesRead + bytesRead;
+        console.log(`Bytes read: ${totalBytesRead} / ${fileSize}`);
+
+        // If 0 bytes read, it means that we're finished reading
+        if (bytesRead === 0) {
+            console.log('bitti bytesRead 0');
+            break;
+        }
+
+        // Send the data and wait for the next chunk
+        shout.send(buf, bytesRead);
+
+        // Get the how much time we should wait before sending the next chunk and wait
+        // This will NOT block the I/O
+        const delay = shout.delay();
+        await sleep(delay);
+    }
 
 
 
