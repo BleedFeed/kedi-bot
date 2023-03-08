@@ -57,11 +57,21 @@ client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
+const server= http.createServer((req,res)=>{
+	if(req.url ==='/radyo'){
+		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive'});
+		res.socket.on('close',()=>{
+			writableStreams.splice(writableStreams.indexOf(res),1);
+		});
+	
+		writableStreams.push(res);
+	}
+	else if(req.url === '/'){
+		res.writeHead(200,{'Content-Type':'text; charset=utf8'});
+		res.end('Hoşgeldiniz');
+	}
+});
 
-const tsharkprocess = spawn('sudo',['tshark','-i','-f','eth0','-w','dump.pcap']);
-
-tsharkprocess.stdout.on('data',(chunk)=>{
-	console.log(chunk.toString());
-})
+server.listen(port);
 
 client.login(token);

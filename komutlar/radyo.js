@@ -8,11 +8,7 @@ const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const { PassThrough } = require("stream");
 const nowPlaying = require('../utils/nowPlaying');
-const nodeshout  = require('nodeshout');
-
-
-
-const youtubedl = require('youtube-dl-exec');
+const mainStream = new PassThrough();
 
 
 module.exports = {
@@ -23,9 +19,8 @@ module.exports = {
 		option.setName('video')
 			.setDescription('video linki')
             .setRequired(true)),
-    async execute(interaction){
+    async execute(interaction,writableStreams){
         await interaction.deferReply({ephemeral:true});
-        spawn('icecast',['c','/usr/local/etc/icecast.xml']);
 
         const videoLink = interaction.options.getString('video');
 
@@ -50,28 +45,14 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
-        nodeshout.init();
+        let videoDetails = await setUpStream(true,interaction.client);
 
-        // Create a shout instance
-        const shout = nodeshout.create();
 
-        // Configure it
-        shout.setHost('localhost');
-        shout.setPort(8000);
-        shout.setUser('source');
-        shout.setPassword('hackme');
-        shout.setMount('radyo');
-        shout.setFormat(1); // 0=ogg, 1=mp3
-        shout.setAudioInfo('bitrate', '128');
-        shout.setAudioInfo('samplerate', '44100');
-        shout.setAudioInfo('channels', '2');
-    
-        shout.open();
-
-        let videoDetails = await setUpStream(true,interaction.client,shout);
-
-        // Reading & sending loop
-
+        mainStream.on('data',(chunk)=>{
+            for(let i = 0; i < writableStreams.length;i++){
+                writableStreams[i].write(chunk);
+            }
+        });
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -97,7 +78,7 @@ function getAudioStream(url){
     });
 }
 
-async function setUpStream(fromQueue,client,shout){
+async function setUpStream(fromQueue,client){
 
     let readable;
     let videoDetails;
@@ -114,12 +95,10 @@ async function setUpStream(fromQueue,client,shout){
     }
 
     nowPlaying.set({title:videoDetails.title},client);
-
-    readable.on('data',(chunk)=>{
-        shout.send(chunk, chunk.length);
-    });
+    readable.pipe(mainStream,{end:false});    
 
     readable.on('end',async ()=>{
+        readable.unpipe();
         if(fromQueue){
             queue.shift();
         }
