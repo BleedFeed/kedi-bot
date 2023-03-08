@@ -10,11 +10,6 @@ const { PassThrough } = require("stream");
 const nowPlaying = require('../utils/nowPlaying');
 const nodeshout  = require('nodeshout');
 
-
-
-const youtubedl = require('youtube-dl-exec');
-
-
 module.exports = {
     data : new SlashCommandBuilder()
 	.setName('radyo')
