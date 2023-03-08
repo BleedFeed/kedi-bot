@@ -6,11 +6,9 @@ const hostname = process.env.hostname;
 const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
-const { PassThrough } = require("stream");
 const nowPlaying = require('../utils/nowPlaying');
 const nodeshout  = require('nodeshout');
 const fs = require('fs/promises');
-const { send } = require("process");
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -87,6 +85,7 @@ function getAudioStream(url){
         '-i','pipe:3',
         '-f','mp3',
         '-ar','44100',
+        '-y',
         '-ac','2',
         '-codec:a','libmp3lame',
         '-b:a','128k',
