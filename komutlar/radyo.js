@@ -2,19 +2,18 @@ const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = req
 require('dotenv').config();
 const ytdl = require('ytdl-core');
 const Throttle = require('throttle');
-const { Converter } = require("ffmpeg-stream");
 const hostname = process.env.hostname;
 const queue = require('../utils/queue');
-const ytlist = require('youtube-playlist');
 const songs = require('../utils/songs');
-const fs = require('fs');
 const {spawn} = require('child_process');
+const { PassThrough } = require("stream");
+const nowPlaying = require('../utils/nowPlaying');
+const nodeshout  = require('nodeshout');
 
 
 
-const youtubedl = require('youtube-dl-exec')
+const youtubedl = require('youtube-dl-exec');
 
-let readableThrottled = null;
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -24,7 +23,9 @@ module.exports = {
 		option.setName('video')
 			.setDescription('video linki')
             .setRequired(true)),
-    async execute(interaction,writableStreams){
+    async execute(interaction){
+        await interaction.deferReply({ephemeral:true});
+        spawn('icecast',['c','/usr/local/etc/icecast.xml']);
 
         const videoLink = interaction.options.getString('video');
 
@@ -34,12 +35,10 @@ module.exports = {
             return;
         }
 
-        const videoDetails = (await ytdl.getBasicInfo(videoLink)).videoDetails;
-
-        queue.push({title:videoDetails.title,url:videoDetails.video_url});
-
-        if(readableThrottled){
-            interaction.reply({content:'Sıraya eklendi',ephemeral:true});
+        queue.push(videoLink);
+        console.log(nowPlaying);
+        if(nowPlaying.playing.title){
+            interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
 
@@ -51,93 +50,81 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
-        setUpThrottledStream(false,writableStreams);
+        nodeshout.init();
 
-        interaction.reply({content:videoDetails.title + ' çalıyor', components:[row]});
+        // Create a shout instance
+        const shout = nodeshout.create();
+
+        // Configure it
+        shout.setHost('localhost');
+        shout.setPort(8000);
+        shout.setUser('source');
+        shout.setPassword('hackme');
+        shout.setMount('radyo');
+        shout.setFormat(1); // 0=ogg, 1=mp3
+        shout.setAudioInfo('bitrate', '128');
+        shout.setAudioInfo('samplerate', '44100');
+        shout.setAudioInfo('channels', '2');
+    
+        shout.open();
+
+        let videoDetails = await setUpStream(true,interaction.client,shout);
+
+        // Reading & sending loop
+
+
+        await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
 }
 
-function getReadableAudioStream(video){
+function getAudioStream(url){
 
     return new Promise(async(resolve,reject)=>{
-        const converter = new Converter();
-        const input = converter.createInputStream();
-        (await ytdl(video,{filter:'audioonly',quality:'highestaudio'})).pipe(input);
-        resolve(converter);
 
+        const ytdlStream = await ytdl(url,{filter:'audioonly',quality:'highestaudio'});
+
+        const ffmpegProcess = spawn('ffmpeg',[
+        '-i','pipe:3',
+        '-f','mp3',
+        '-ar','44100',
+        '-ac','2',
+        '-codec:a','libmp3lame',
+        '-b:a','128k',
+        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
+        ytdlStream.pipe(ffmpegProcess.stdio[3]);
+        resolve(ffmpegProcess.stdio[4].pipe(new Throttle(16384)));
     });
 }
 
-async function setUpThrottledStream(fromQueue,writableStreams){
+async function setUpStream(fromQueue,client,shout){
 
-    // let converter;
+    let readable;
+    let videoDetails;
 
-    // if(fromQueue){
-    //    converter = await getReadableAudioStream(queue[0].url);
-    // }
-    // else{
-    //     converter = await getReadableAudioStream(songs[Math.floor(Math.random() * songs.length)]);
-    // }
+    if(fromQueue){
+        readable = await getAudioStream(queue[0]);
+        videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
+    }
+    else{
+        let song = songs[Math.floor(Math.random() * songs.length)];
+        readable = await getAudioStream(song);
+        videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
 
+    }
 
-    // const readable = converter.createOutputStream({
-    //     'f':'mp3',
-    //     'codec:a': 'libmp3lame',
-    //     'b:a':'128k',
-    // });
+    nowPlaying.set({title:videoDetails.title},client);
 
-
-
-
-    const output = await youtubedl(queue[0].url, {
-        dumpSingleJson: true,
-        noCheckCertificates: true,
-        noWarnings: true,
-        preferFreeFormats: true,
-        addHeader: [
-        'referer:youtube.com',
-        'user-agent:googlebot'
-        ]
-    
+    readable.on('data',(chunk)=>{
+        shout.send(chunk, chunk.length);
     });
 
-    const format = output.formats.filter((format)=> format.format_id == '251')
-
-    const ytdlStream = await ytdl(queue[0].url,{filter:'audioonly',quality:'highestaudio'});
-
-    const ffmpegProcess = spawn('ffmpeg',[
-    '-i','stream.',
-    '-f','mp3',
-    '-ar','44100',
-    '-ac','2',
-    '-codec:a','libmp3lame',
-    '-b:a','128k',
-    'pipe:4']);
-
-    // const readable = process.stdin;
-
-    if(readableThrottled){
-    readableThrottled.destroy();
-    }
-    
-    readableThrottled = readable.pipe(new Throttle(16384));
-
-    readableThrottled.on('data', (chunk) => {
-        for (let i = 0; i < writableStreams.length;i++) {
-            writableStreams[i].write(chunk);
-        }});
-
-    readableThrottled.on('close',()=>{
-        console.log('stream kapandı');
+    readable.on('end',async ()=>{
         if(fromQueue){
             queue.shift();
         }
-        setUpThrottledStream(queue.length !== 0,writableStreams);
-    })
-
-    // await converter.run();
+        setUpStream(queue.length !==0,client,shout);
+    });
     
-
-
-}         
+    return(videoDetails);
+}
