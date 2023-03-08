@@ -68,6 +68,7 @@ module.exports = {
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
         sendData();
+        
         // Reading & sending loop
 
 
@@ -105,7 +106,7 @@ async function setUpStream(fromQueue,client){
     if(fromQueue){
         await getAudioStream(queue[0]);
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
-        queue[0].shift();
+        queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
