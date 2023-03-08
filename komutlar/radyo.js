@@ -128,6 +128,7 @@ async function sendData(shout){
         const chunkSize = 8192;
 
         mainStream.on('readable',()=>{
+            console.log('readable');
             let data = mainStream.read(chunkSize);
             if(!data){
                 return;
