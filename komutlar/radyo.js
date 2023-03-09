@@ -91,6 +91,10 @@ async function setUpFile(fromQueue,client,shout){
         shout.send(chunk,chunk.length);
     })
 
+    readable.on('end',()=>{
+        setUpFile(queue.length !==0,client,shout);
+    });
+
     nowPlaying.set({title:videoDetails.title},client);
 
     return(videoDetails);
