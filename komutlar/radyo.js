@@ -67,11 +67,13 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4]);
+        resolve(ffmpegProcess.stdio[4])
     });
 }
 
-
+const sleep = (ms) => new Promise((resolve,reject)=>{
+    setTimeout(()=>{resolve()},ms);
+});
 
 async function setUpFile(fromQueue,client,shout){
 
@@ -89,16 +91,21 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    if (isMainThread) {
-        // This re-loads the current file inside a Worker instance.
-        new Worker(__filename);
-        } else {
-            readable.on('data',async (chunk)=>{
-                shout.sync();
-                shout.send(chunk,chunk.length);
-            })
+
+        readable.on('readable', async function() {
+            // There is some data to read now.
+            let data;
         
-        }
+            while ((data = this.read(4096)) !== null) {
+            await sleep(Math.abs(shout.delay()));
+            
+            }
+        });
+
+        // readable.on('data',async (chunk)=>{
+        //     shout.sync();
+        //     shout.send(chunk,chunk.length);
+        // })
 
     readable.on('end',()=>{
         setUpFile(queue.length !==0,client,shout);
