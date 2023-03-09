@@ -92,7 +92,8 @@ async function setUpFile(fromQueue,client,shout){
     }
 
     readable.on('data',()=>{
-        shout.send()
+        shout.sync();
+        shout.send();
     });
 
     readable.on('end',()=>{
