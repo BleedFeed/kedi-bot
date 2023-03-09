@@ -91,9 +91,9 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.on('data',()=>{
+    readable.on('data',(chunk)=>{
         shout.sync();
-        shout.send();
+        shout.send(chunk,chunk.length);
     });
 
     readable.on('end',()=>{
