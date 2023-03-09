@@ -90,7 +90,8 @@ async function setUpFile(fromQueue,client,shout){
     readable.on('data',async (chunk)=>{
         readable.pause();
         shout.send(chunk,chunk.length);
-        const delay = shout.delay();
+        const delay = Math.abs(shout.delay());
+        console.log(delay);
         await new Promise((resolve)=>setTimeout(resolve,delay));
         readable.resume();
     });
