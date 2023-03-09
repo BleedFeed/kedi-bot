@@ -45,6 +45,8 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
+        let videoDetails = await setUpFile(true,interaction.client);   
+
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
