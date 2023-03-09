@@ -7,10 +7,11 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const nodeshout  = require('nodeshout');
+const nodeshout = require("nodeshout-napi");
 const fs = require('fs/promises');
 const { PassThrough } = require("stream");
 const mainStream = new PassThrough();
+const { ShoutStream } = require('nodeshout-napi');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -47,23 +48,27 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
+    
+
         nodeshout.init();
 
         // Create a shout instance
         const shout = nodeshout.create();
-
+        
         // Configure it
         shout.setHost('localhost');
-        shout.setPort(process.env.port);
+        shout.setPort(80);
         shout.setUser('source');
         shout.setPassword('hackme');
-        shout.setMount('radyo');
+        shout.setMount('mount');
         shout.setFormat(1); // 0=ogg, 1=mp3
         shout.setAudioInfo('bitrate', '128');
         shout.setAudioInfo('samplerate', '44100');
         shout.setAudioInfo('channels', '2');
-    
-        shout.open();
+
+        if (shout.open() !== nodeshout.ErrorTypes.SUCCESS){
+            throw 0;
+        }
 
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
@@ -77,8 +82,15 @@ module.exports = {
             console.log('mainstream error');
         });
 
-        sendData(shout,interaction.client);
+        const shoutStream = mainStream.pipe(new ShoutStream(shout));
+
         
+        shoutStream.on('finish', () => {
+        console.log('stream bitti la olmamsı gerekiodu bunun');
+        // Finished playing, you can create
+        // another stream for next song
+        });
+            
         // Reading & sending loop
 
 
@@ -97,15 +109,12 @@ function getAudioStream(url){
         '-i','pipe:3',
         '-f','mp3',
         '-ar','44100',
-        '-y',
         '-ac','2',
         '-codec:a','libmp3lame',
         '-b:a','128k',
-        'output.mp3'],{stdio:['ignore','ignore','ignore','pipe']});
+        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        ffmpegProcess.on('close',()=>{
-            resolve();
-        })
+        resolve(ffmpegProcess.stdio[4]);
     });
 }
 
@@ -115,63 +124,24 @@ async function setUpStream(fromQueue,client){
     let videoDetails;
 
     if(fromQueue){
-        await getAudioStream(queue[0]);
+        readable = await getAudioStream(queue[0]);
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        await getAudioStream(song);
+        redable = await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
 
     }
+
+    redable.pipe(mainStream,{end:false});
+
+    readable.on('end',()=>{
+        setUpStream(queue.length !==0,client);
+    });
 
     nowPlaying.set({title:videoDetails.title},client);
 
     return(videoDetails);
 }
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function sendData(shout,client){
-
-    const fileHandle = await fs.open('./output.mp3');
-    const stats = await fileHandle.stat();
-    const fileSize = stats.size;
-    const chunkSize = 65536;
-    const buf = Buffer.alloc(chunkSize);
-    let totalBytesRead = 0;
-
-    // Reading & sending loop
-    while (totalBytesRead < fileSize) {
-        // For the latest chunk, its size may be smaller than the desired
-        const readLength = (totalBytesRead + chunkSize) <= fileSize ?
-            chunkSize :
-            fileSize - totalBytesRead;
-
-        // Read file
-        const {bytesRead} = await fileHandle.read(buf, 0, readLength, totalBytesRead);
-
-        totalBytesRead = totalBytesRead + bytesRead;
-        console.log(`Bytes read: ${totalBytesRead} / ${fileSize}`);
-
-        // If 0 bytes read, it means that we're finished reading
-
-        // Send the data and wait for the next chunk
-        shout.send(buf, bytesRead);
-
-
-        if (bytesRead < chunkSize) {
-            await setUpStream(queue.length !==0,client);
-            sendData(shout,client);
-            break;
-        }
-        // Get the how much time we should wait before sending the next chunk and wait
-        // This will NOT block the I/O
-        const delay = shout.delay();
-        await sleep(delay);
-    }
-
-
-
-} 
