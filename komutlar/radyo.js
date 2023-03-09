@@ -87,6 +87,7 @@ function getAudioStream(url){
         '-f','mp3',
         '-ar','44100',
         '-ac','2',
+        '-y',
         '-codec:a','libmp3lame',
         '-b:a','128k',
         'output.mp3'],{stdio:['ignore','ignore','ignore','pipe']});
