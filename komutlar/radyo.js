@@ -67,7 +67,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4].pipe(new Throttle(16384)));
+        resolve(ffmpegProcess.stdio[4]);
     });
 }
 
@@ -91,9 +91,8 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.on('data',(chunk)=>{
-        shout.sync();
-        shout.send(chunk,chunk.length);
+    readable.on('data',()=>{
+        shout.send()
     });
 
     readable.on('end',()=>{
