@@ -89,11 +89,11 @@ async function setUpFile(fromQueue,client,shout){
 
     let chunk;
 
-    readable.on('readable',async ()=>{
-        chunk = readable.read(4096);
-        if(chunk !== null){
-            shout.sync();
-            shout.send(chunk,chunk.length);
+    readable.on('readable', async ()=>{
+        console.log('readbale');
+        while((chunk = readable.read(4096)) !== null){
+                shout.send(chunk,chunk.length);
+                await sleep(Math.abs(shout.delay()));
         }
     })
 
@@ -106,3 +106,6 @@ async function setUpFile(fromQueue,client,shout){
 
     return(videoDetails);
 }
+
+
+const sleep = (ms) => new Promise((resolve,reject)=>{setTimeout(()=>{resolve()},ms)});
