@@ -71,10 +71,6 @@ function getAudioStream(url){
     });
 }
 
-const sleep = (ms) => new Promise((resolve,reject)=>{
-    setTimeout(()=>{resolve()},ms);
-});
-
 async function setUpFile(fromQueue,client,shout){
 
     let readable;
@@ -91,9 +87,13 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.on('data',(chunk)=>{
-        shout.sync();
-        shout.send(chunk,chunk.length);
+    readable.on('data',async (chunk)=>{
+        readable.pause();
+        // shout.send(chunk,chunk.length);
+        // const delay = shout.delay();
+        await new Promise((resolve)=>setTimeout(resolve,5000));
+        console.log('5 saniye');
+        readable.resume();
     });
 
     readable.on('end',()=>{
