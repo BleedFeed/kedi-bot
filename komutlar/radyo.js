@@ -9,7 +9,6 @@ const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 
-
 module.exports = {
     data : new SlashCommandBuilder()
 	.setName('radyo')
@@ -88,14 +87,12 @@ async function setUpFile(fromQueue,client){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
     console.log(shout);
-    const shoutStream = readable.pipe(new ShoutStream(shout));
 
-    shoutStream.on('finish', () => {
+    readable.pipe(ShoutStream,{end:false});
+
+    readable.on('end',()=>{
         setUpFile(queue.length !==0,client);
-        // Finished playing, you can create
-        // another stream for next song
     });
-
 
     nowPlaying.set({title:videoDetails.title},client);
 
