@@ -8,6 +8,7 @@ const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const { FileReadStream, ShoutStream } = require('nodeshout-napi');
+const { PassThrough } = require("stream");
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -19,7 +20,6 @@ module.exports = {
             .setRequired(true)),
     async execute(interaction){
         await interaction.deferReply({ephemeral:true});
-
         const videoLink = interaction.options.getString('video');
 
         if(!videoLink.startsWith('https://www.youtube.com') && !videoLink.startsWith('https://youtu.be/')){
@@ -70,6 +70,9 @@ function getAudioStream(url){
     });
 }
 
+
+const sleep = (ms) => new Promise((resolve,reject)=>{setTimeout(()=>{resolve()},ms)});
+
 async function setUpFile(fromQueue,client,shout){
 
     let readable;
@@ -86,13 +89,13 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.once('readable',()=>{
-        read(readable,shout,4096);
-    });
+    readable.on('data',async (chunk)=>{
+        await sleep(Math.abs(shout.delay()));
+        shout.send(chunk,chunk.length);
+    })
 
     readable.on('end',()=>{
-    console.log('end');
-    setUpFile(queue.length !==0,client,shout);
+        setUpFile(queue.length !==0,client,shout);
     });
 
     nowPlaying.set({title:videoDetails.title},client);
@@ -100,17 +103,3 @@ async function setUpFile(fromQueue,client,shout){
     return(videoDetails);
 }
 
-
-function read(stream,shout,chunkSize){
-    console.log('reading');
-    let chunk = stream.read(chunkSize);
-    if(chunk !== null){
-        shout.send(chunk,chunk.length);
-        setTimeout(()=>{read(stream,shout,chunkSize)}, Math.abs(shout.delay()));
-    }
-    else{
-        stream.once('readable',()=>{
-        setTimeout(()=>{read(stream,shout,chunkSize)}, Math.abs(shout.delay()));
-        });
-    }
-} 
