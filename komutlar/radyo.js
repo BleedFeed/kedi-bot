@@ -31,6 +31,7 @@ module.exports = {
 
         queue.push(videoLink);
         if(nowPlaying.playing.title){
+            console.log('sıraya eklendi');
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
