@@ -61,7 +61,7 @@ module.exports = {
         if (shout.open() !== nodeshout.ErrorTypes.SUCCESS)
         throw 0;
 
-        startStream(shout,client);
+        startStream(shout,interaction.client);
 
         const row = new ActionRowBuilder()
                 .addComponents(
