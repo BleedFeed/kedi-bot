@@ -89,9 +89,9 @@ async function setUpFile(fromQueue,client,shout){
 
     readable.on('data',async (chunk)=>{
         readable.pause();
-        // shout.send(chunk,chunk.length);
-        // const delay = shout.delay();
-        await new Promise((resolve)=>setTimeout(resolve,5000));
+        shout.send(chunk,chunk.length);
+        const delay = shout.delay();
+        await new Promise((resolve)=>setTimeout(resolve,delay));
         console.log('5 saniye');
         readable.resume();
     });
