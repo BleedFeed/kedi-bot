@@ -67,7 +67,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4])
+        resolve(ffmpegProcess.stdio[4].pipe(new Throttle(16384)));
     });
 }
 
@@ -94,7 +94,7 @@ async function setUpFile(fromQueue,client,shout){
 
     readable.on('readable', async function(){
 
-        while (null !== (chunk = readable.read(4096))) {
+        while (null !== (chunk = readable.read())) {
             shout.send(chunk,chunk.length);
            await new Promise(resolve => setTimeout(resolve, Math.abs(shout.delay())));
         }
