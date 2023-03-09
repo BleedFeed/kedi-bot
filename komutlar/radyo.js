@@ -92,7 +92,7 @@ async function setUpFile(fromQueue,client,shout){
     }
 
 
-        readable.on('readable', async function() {
+        readable.once('readable', async function() {
             // There is some data to read now.
             let data;
             let i = 0;
