@@ -94,7 +94,7 @@ async function setUpFile(fromQueue,client,shout){
 
     readable.on('readable', async function(){
 
-        while (null !== (chunk = myReadStream.read())) {
+        while (null !== (chunk = readable.read())) {
             shout.send(chunk,chunk.length);
            await new Promise(resolve => setTimeout(resolve, Math.abs(shout.delay())));
         }
