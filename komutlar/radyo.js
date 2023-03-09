@@ -7,11 +7,10 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const nodeshout = require("nodeshout");
+const nodeshout = require("nodeshout-napi");
 const { PassThrough } = require("stream");
-const mainStream = new PassThrough({});
-const FileReadStream = require('../utils/FileReadStream');
-const ShoutStream = require('../utils/ShoutStream');
+const mainStream = new PassThrough();
+const { ShoutStream } = require('nodeshout-napi');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -72,8 +71,22 @@ module.exports = {
 
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
+        mainStream.on('close',()=>{
+            console.log('mainstream close');
+        })
+        mainStream.on('end',()=>{
+            console.log('mainstream end');
+        })
+        mainStream.on('error',()=>{
+            console.log('mainstream error');
+        });
+
         const shoutStream = mainStream.pipe(new ShoutStream(shout));
-        
+
+        mainStream.on('data',(chunk)=>{
+            console.log('mainstream data geldi length: ' + chunk.length );
+        });
+
         shoutStream.on('finish', () => {
         console.log('stream bitti la olmamsı gerekiodu bunun');
         // Finished playing, you can create
