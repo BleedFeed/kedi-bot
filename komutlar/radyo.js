@@ -44,7 +44,7 @@ module.exports = {
                 );
         const shout = require('../utils/nodeshout').getShout();
 
-        let videoDetails = await setUpFile(true,interaction.client,new ShoutStream(shout));   
+        let videoDetails = await setUpFile(true,interaction.client,shout);   
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -70,7 +70,7 @@ function getAudioStream(url){
     });
 }
 
-async function setUpFile(fromQueue,client,shoutStream){
+async function setUpFile(fromQueue,client,shout){
 
     let readable;
     let videoDetails;
@@ -85,12 +85,11 @@ async function setUpFile(fromQueue,client,shoutStream){
         readable = await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
-    
-    readable.pipe(shoutStream,{end:false});
 
-    readable.on('end',()=>{
-        setUpFile(queue.length !==0,client,shoutStream);
-    });
+    readable.on('data',(chunk)=>{
+        shout.sync();
+        shout.send(chunk,chunk.length);
+    })
 
     nowPlaying.set({title:videoDetails.title},client);
 
