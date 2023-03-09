@@ -109,4 +109,9 @@ async function read(stream,shout,chunkSize){
         shout.send(chunk,chunk.length);
         setTimeout(read(stream,shout,chunkSize), Math.abs(shout.delay()));
     }
+    else{
+        stream.once('readable',()=>{
+        read(readable,shout,4096);
+        });
+    }
 } 
