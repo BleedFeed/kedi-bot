@@ -59,7 +59,7 @@ module.exports = {
         shout.setPort(80);
         shout.setUser('source');
         shout.setPassword('hackme');
-        shout.setMount('mount');
+        shout.setMount('radyo');
         shout.setFormat(1); // 0=ogg, 1=mp3
         shout.setAudioInfo('bitrate', '128');
         shout.setAudioInfo('samplerate', '44100');
