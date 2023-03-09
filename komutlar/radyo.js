@@ -86,16 +86,7 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-
-    let chunk;
-
-    readable.on('readable', async ()=>{
-        console.log('readbale');
-        while((chunk = readable.read(4096)) !== null){
-                shout.send(chunk,chunk.length);
-                await sleep(Math.abs(shout.delay()));
-        }
-    })
+    read(readable,shout,4096);
 
     readable.on('end',()=>{
     console.log('end');
@@ -108,4 +99,10 @@ async function setUpFile(fromQueue,client,shout){
 }
 
 
-const sleep = (ms) => new Promise((resolve,reject)=>{setTimeout(()=>{resolve()},ms)});
+async function read(stream,shout,chunkSize){
+    let chunk = stream.read(chunkSize);
+    if(chunk !== null){
+        shout.send(chunk,chunk.length);
+        setTimeout(read(stream,shout,chunkSize), Math.abs(shout.delay()));
+    }
+} 
