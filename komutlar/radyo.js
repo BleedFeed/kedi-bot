@@ -87,11 +87,10 @@ async function setUpFile(fromQueue,client){
         readable = await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
-
+    console.log(shout);
     const shoutStream = readable.pipe(new ShoutStream(shout));
 
     shoutStream.on('finish', () => {
-        console.log('bitti');
         setUpFile(queue.length !==0,client);
         // Finished playing, you can create
         // another stream for next song
