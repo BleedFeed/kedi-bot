@@ -111,7 +111,7 @@ async function read(stream,shout,chunkSize){
     }
     else{
         stream.once('readable',()=>{
-        read(readable,shout,4096);
+        read(stream,shout,chunkSize);
         });
     }
 } 
