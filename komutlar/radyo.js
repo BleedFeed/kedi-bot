@@ -8,7 +8,6 @@ const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const nodeshout = require("nodeshout-napi");
-const fs = require('fs/promises');
 const { PassThrough } = require("stream");
 const mainStream = new PassThrough();
 const { ShoutStream } = require('nodeshout-napi');
@@ -135,7 +134,7 @@ async function setUpStream(fromQueue,client){
 
     }
 
-    redable.pipe(mainStream,{end:false});
+    readable.pipe(mainStream,{end:false});
 
     readable.on('end',()=>{
         setUpStream(queue.length !==0,client);
