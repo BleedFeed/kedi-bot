@@ -92,19 +92,10 @@ async function setUpFile(fromQueue,client,shout){
     }
 
 
-        readable.on('readable', async function() {
-            console.log('readable');
-            let chunk = readable.read(4096);
-            if(chunk !== null){
-                await sleep(Math.abs(shout.delay()));
-                shout.send(chunk,chunk.length);
-            }
+        readable.on('data',async (chunk)=>{
+            await sleep(Math.abs(shout.delay()));
+            shout.send(chunk,chunk.length);
         });
-
-        // readable.on('data',async (chunk)=>{
-        //     shout.sync();
-        //     shout.send(chunk,chunk.length);
-        // })
 
     readable.on('end',()=>{
         setUpFile(queue.length !==0,client,shout);
