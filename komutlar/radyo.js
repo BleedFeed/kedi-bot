@@ -92,7 +92,7 @@ async function setUpFile(fromQueue,client,shout){
     }
 
 
-        readable.once('readable', async function() {
+        readable.on('readable', async function() {
             console.log('readable');
             let chunk = readable.read(4096);
             if(chunk !== null){
