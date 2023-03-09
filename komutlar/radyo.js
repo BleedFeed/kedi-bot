@@ -93,10 +93,10 @@ async function setUpFile(fromQueue,client,shout){
 
 
         readable.on('data',async (chunk)=>{
-            myReadStream.pause();
+            readable.pause();
             await sleep(Math.abs(shout.delay()));
             shout.send(chunk,chunk.length);
-            myReadStream.resume()
+            readable.resume()
         });
 
     readable.on('end',()=>{
