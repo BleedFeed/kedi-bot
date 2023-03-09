@@ -30,7 +30,6 @@ module.exports = {
         }
 
         queue.push(videoLink);
-        console.log(nowPlaying);
         if(nowPlaying.playing.title){
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
@@ -43,8 +42,9 @@ module.exports = {
                                 .setURL(hostname + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
+        const shout = require('../utils/nodeshout').getShout();
 
-        let videoDetails = await setUpFile(true,interaction.client);   
+        let videoDetails = await setUpFile(true,interaction.client,new ShoutStream(shout));   
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -70,11 +70,10 @@ function getAudioStream(url){
     });
 }
 
-async function setUpFile(fromQueue,client){
+async function setUpFile(fromQueue,client,shoutStream){
 
     let readable;
     let videoDetails;
-    let shout = require('../utils/nodeshout').getShout();
 
     if(fromQueue){
         readable = await getAudioStream(queue[0]);
@@ -88,10 +87,10 @@ async function setUpFile(fromQueue,client){
     }
     console.log(shout);
 
-    readable.pipe(ShoutStream,{end:false});
+    readable.pipe(shoutStream,{end:false});
 
     readable.on('end',()=>{
-        setUpFile(queue.length !==0,client);
+        setUpFile(queue.length !==0,client,shoutStream);
     });
 
     nowPlaying.set({title:videoDetails.title},client);
