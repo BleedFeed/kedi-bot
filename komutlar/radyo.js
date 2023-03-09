@@ -19,7 +19,7 @@ module.exports = {
             .setRequired(true)),
     async execute(interaction){
         await interaction.deferReply({ephemeral:true});
-        
+
         const videoLink = interaction.options.getString('video');
 
         if(!videoLink.startsWith('https://www.youtube.com') && !videoLink.startsWith('https://youtu.be/')){
@@ -86,13 +86,20 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.on('data',(chunk)=>{
-        shout.sync();
-        shout.send(chunk,chunk.length);
+
+    let chunk;
+
+    readable.on('readable',async ()=>{
+        chunk = readable.read(4096);
+        if(chunk !== null){
+            shout.sync();
+            shout.send(chunk,chunk.length);
+        }
     })
 
     readable.on('end',()=>{
-        setUpFile(queue.length !==0,client,shout);
+    console.log('end');
+    setUpFile(queue.length !==0,client,shout);
     });
 
     nowPlaying.set({title:videoDetails.title},client);
