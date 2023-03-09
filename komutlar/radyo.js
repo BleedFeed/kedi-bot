@@ -102,6 +102,7 @@ async function setUpFile(fromQueue,client,shout){
 async function read(stream,shout,chunkSize){
     console.log('reading');
     let chunk = stream.read(chunkSize);
+    console.log(chunk);
     if(chunk !== null){
         shout.send(chunk,chunk.length);
         setTimeout(read(stream,shout,chunkSize), Math.abs(shout.delay()));
