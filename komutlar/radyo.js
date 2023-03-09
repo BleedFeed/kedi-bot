@@ -86,7 +86,9 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    read(readable,shout,4096);
+    readable.once('readable',()=>{
+        read(readable,shout,4096);
+    });
 
     readable.on('end',()=>{
     console.log('end');
