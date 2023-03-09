@@ -19,20 +19,19 @@ module.exports = {
             .setRequired(true)),
     async execute(interaction){
         await interaction.deferReply({ephemeral:true});
-        spawn('icecast',['c','/usr/local/etc/icecast.xml']);
-
+        
         const videoLink = interaction.options.getString('video');
 
         if(!videoLink.startsWith('https://www.youtube.com') && !videoLink.startsWith('https://youtu.be/')){
             console.log('hatalı link');
-            interaction.editReply({content:'Hatalı Link ! Sadece youtube video ve playlist linkleri geçerlidir',ephemeral:true});
+            await interaction.editReply({content:'Hatalı Link ! Sadece youtube video ve playlist linkleri geçerlidir',ephemeral:true});
             return;
         }
 
         queue.push(videoLink);
         if(nowPlaying.playing.title){
             console.log('sıraya eklendi');
-            interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
+            await interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
 
