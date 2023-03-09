@@ -10,12 +10,12 @@ module.exports = {
         
         // Configure it
         shout.setHost('localhost');
-        shout.setPort(8000);
+        shout.setPort(80);
         shout.setUser('source');
-        shout.setPassword('password');
-        shout.setMount('mount');
+        shout.setPassword('hackme');
+        shout.setMount('radyo');
         shout.setFormat(1); // 0=ogg, 1=mp3
-        shout.setAudioInfo('bitrate', '192');
+        shout.setAudioInfo('bitrate', '128');
         shout.setAudioInfo('samplerate', '44100');
         shout.setAudioInfo('channels', '2');
         if (shout.open() !== nodeshout.ErrorTypes.SUCCESS)
