@@ -8,9 +8,9 @@ const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const nodeshout = require("nodeshout-napi");
-const { PassThrough } = require("stream");
-const mainStream = new PassThrough();
-const { ShoutStream } = require('nodeshout-napi');
+
+const { FileReadStream, ShoutStream } = require('nodeshout-napi');
+
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -39,21 +39,14 @@ module.exports = {
             return;
         }
 
-        const row = new ActionRowBuilder()
-                .addComponents(
-                        new ButtonBuilder()
-                                .setLabel('Radyo Link')
-                                .setURL(hostname + '/radyo')
-                                .setStyle(ButtonStyle.Link),
-                );
+        await setUpFile(true,interaction.client);
 
-    
 
         nodeshout.init();
 
         // Create a shout instance
         const shout = nodeshout.create();
-        
+
         // Configure it
         shout.setHost('localhost');
         shout.setPort(80);
@@ -65,36 +58,18 @@ module.exports = {
         shout.setAudioInfo('samplerate', '44100');
         shout.setAudioInfo('channels', '2');
 
-        if (shout.open() !== nodeshout.ErrorTypes.SUCCESS){
-            throw 0;
-        }
+        if (shout.open() !== nodeshout.ErrorTypes.SUCCESS)
+        throw 0;
 
-        let videoDetails = await setUpStream(true,interaction.client,shout);
+        startStream(shout,client);
 
-        mainStream.on('close',()=>{
-            console.log('mainstream close');
-        })
-        mainStream.on('end',()=>{
-            console.log('mainstream end');
-        })
-        mainStream.on('error',()=>{
-            console.log('mainstream error');
-        });
-
-        const shoutStream = mainStream.pipe(new ShoutStream(shout));
-
-        mainStream.on('data',(chunk)=>{
-            console.log('mainstream data geldi length: ' + chunk.length );
-        });
-
-        shoutStream.on('finish', () => {
-        console.log('stream bitti la olmamsı gerekiodu bunun');
-        // Finished playing, you can create
-        // another stream for next song
-        });
-            
-        // Reading & sending loop
-
+        const row = new ActionRowBuilder()
+                .addComponents(
+                        new ButtonBuilder()
+                                .setLabel('Radyo Link')
+                                .setURL(hostname + '/radyo')
+                                .setStyle(ButtonStyle.Link),
+                );
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -114,36 +89,47 @@ function getAudioStream(url){
         '-ac','2',
         '-codec:a','libmp3lame',
         '-b:a','128k',
-        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
+        'output.mp3'],{stdio:['ignore','ignore','ignore','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4]);
+        ffmpegProcess.on('close',()=>{
+            resolve();
+        });
     });
 }
 
-async function setUpStream(fromQueue,client){
+async function setUpFile(fromQueue,client){
 
-    let readable;
     let videoDetails;
 
     if(fromQueue){
-        readable = await getAudioStream(queue[0]);
+        await getAudioStream(queue[0]);
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        readable = await getAudioStream(song);
+        await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
 
     }
 
-    readable.pipe(mainStream,{end:false});
-
-    readable.on('end',()=>{
-        setUpStream(queue.length !==0,client);
-    });
-
     nowPlaying.set({title:videoDetails.title},client);
 
     return(videoDetails);
+}
+
+
+function startStream(shout,client){
+
+    
+    const fileStream = new FileReadStream('./output.mp3', 65536);
+    const shoutStream = fileStream.pipe(new ShoutStream(shout));
+
+    shoutStream.on('finish', async () => {
+    await setUpFile(queue.length !== 0,client);
+    startStream(shout,client);
+    // Finished playing, you can create
+    // another stream for next song
+    });
+
 }
