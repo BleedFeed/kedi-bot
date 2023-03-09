@@ -98,7 +98,7 @@ async function setUpFile(fromQueue,client,shout){
         
             while ((data = this.read(4096)) !== null) {
             await sleep(Math.abs(shout.delay()));
-            
+            shout.send(data,data.length);
             }
         });
 
