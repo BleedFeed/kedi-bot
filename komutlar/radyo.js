@@ -101,7 +101,7 @@ async function setUpFile(fromQueue,client,shout){
 }
 
 
-async function read(stream,shout,chunkSize){
+function read(stream,shout,chunkSize){
     console.log('reading');
     let chunk = stream.read(chunkSize);
     console.log(chunk);
