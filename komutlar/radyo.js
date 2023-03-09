@@ -7,8 +7,6 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const nodeshout = require("nodeshout-napi");
-
 const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 
 
@@ -39,30 +37,6 @@ module.exports = {
             return;
         }
 
-        let videoDetails = await setUpFile(true,interaction.client);
-
-
-        nodeshout.init();
-
-        // Create a shout instance
-        const shout = nodeshout.create();
-
-        // Configure it
-        shout.setHost('localhost');
-        shout.setPort(80);
-        shout.setUser('source');
-        shout.setPassword('hackme');
-        shout.setMount('radyo');
-        shout.setFormat(1); // 0=ogg, 1=mp3
-        shout.setAudioInfo('bitrate', '128');
-        shout.setAudioInfo('samplerate', '44100');
-        shout.setAudioInfo('channels', '2');
-
-        if (shout.open() !== nodeshout.ErrorTypes.SUCCESS)
-        throw 0;
-
-        startStream(shout,interaction.client);
-
         const row = new ActionRowBuilder()
                 .addComponents(
                         new ButtonBuilder()
@@ -87,50 +61,42 @@ function getAudioStream(url){
         '-f','mp3',
         '-ar','44100',
         '-ac','2',
-        '-y',
         '-codec:a','libmp3lame',
         '-b:a','128k',
-        'output.mp3'],{stdio:['ignore','ignore','ignore','pipe']});
+        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        ffmpegProcess.on('close',()=>{
-            resolve();
-        });
+        resolve(ffmpegProcess.stdio[4]);
     });
 }
 
 async function setUpFile(fromQueue,client){
 
+    let readable;
     let videoDetails;
+    let shout = require('../utils/nodeshout').getShout();
 
     if(fromQueue){
-        await getAudioStream(queue[0]);
+        readable = await getAudioStream(queue[0]);
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        await getAudioStream(song);
+        readable = await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
-
     }
+
+    const shoutStream = readable.pipe(new ShoutStream(shout));
+
+    shoutStream.on('finish', () => {
+        console.log('bitti');
+        setUpFile(queue.length !==0,client);
+        // Finished playing, you can create
+        // another stream for next song
+    });
+
 
     nowPlaying.set({title:videoDetails.title},client);
 
     return(videoDetails);
-}
-
-
-function startStream(shout,client){
-
-    
-    const fileStream = new FileReadStream('./output.mp3', 65536);
-    const shoutStream = fileStream.pipe(new ShoutStream(shout));
-
-    shoutStream.on('finish', async () => {
-    await setUpFile(queue.length !== 0,client);
-    startStream(shout,client);
-    // Finished playing, you can create
-    // another stream for next song
-    });
-
 }

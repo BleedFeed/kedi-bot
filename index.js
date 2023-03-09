@@ -8,7 +8,9 @@ const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 const queue = require('./utils/queue');
 const {spawn} = require('child_process');
+const {init} = require('./utils/nodeshout');
 
+init();
 const writableStreams = [];
 
 let servers = {};
@@ -58,3 +60,4 @@ client.once(Events.ClientReady, c => {
 });
 
 client.login(token);
+
