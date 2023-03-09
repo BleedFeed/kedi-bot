@@ -9,6 +9,7 @@ const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
+const { Worker, isMainThread } = require('node:worker_threads');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -71,7 +72,6 @@ function getAudioStream(url){
 }
 
 
-const sleep = (ms) => new Promise((resolve,reject)=>{setTimeout(()=>{resolve()},ms)});
 
 async function setUpFile(fromQueue,client,shout){
 
@@ -89,10 +89,16 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.on('data',async (chunk)=>{
-        await sleep(Math.abs(shout.delay()));
-        shout.send(chunk,chunk.length);
-    })
+    if (isMainThread) {
+        // This re-loads the current file inside a Worker instance.
+        new Worker(__filename);
+        } else {
+            readable.on('data',async (chunk)=>{
+                shout.sync();
+                shout.send(chunk,chunk.length);
+            })
+        
+        }
 
     readable.on('end',()=>{
         setUpFile(queue.length !==0,client,shout);
