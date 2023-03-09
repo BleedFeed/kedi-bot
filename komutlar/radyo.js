@@ -39,7 +39,7 @@ module.exports = {
             return;
         }
 
-        await setUpFile(true,interaction.client);
+        let videoDetails = await setUpFile(true,interaction.client);
 
 
         nodeshout.init();
