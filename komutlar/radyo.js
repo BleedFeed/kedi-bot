@@ -11,7 +11,7 @@ const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
 const { Worker, isMainThread } = require('node:worker_threads');
 const readableSave = require('../utils/readable');
-const {init} = require('./utils/nodeshout');
+const {init} = require('../utils/nodeshout');
 let isMounted = false;
 
 module.exports = {
