@@ -48,12 +48,12 @@ module.exports = {
         let videoDetails = await setUpFile(true,interaction.client,shout);   
 
         mainStream.on('data',async (chunk)=>{
-            readable.pause();
+            mainStream.pause();
             shout.send(chunk,chunk.length);
             const delay = Math.abs(shout.delay());
             console.log(delay);
             await new Promise((resolve)=>setTimeout(resolve,delay));
-            readable.resume();
+            mainStream.resume();
         });
     
 
