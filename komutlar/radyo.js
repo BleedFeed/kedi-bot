@@ -67,7 +67,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4]);
+        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:4096})));
     });
 }
 
@@ -86,7 +86,7 @@ async function setUpFile(fromQueue,client,shout){
         readable = await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
-    
+
 
     readable.on('data',async (chunk)=>{
         console.log('data geldi lo');
