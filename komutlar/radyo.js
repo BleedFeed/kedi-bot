@@ -67,7 +67,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:4096})));
+        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:8192})));
     });
 }
 
