@@ -66,7 +66,6 @@ function getAudioStream(url){
         '-ac','2',
         '-b:a','128k',
         '-codec:a','libmp3lame',
-        '-rtbufsize ','100M',
         '-flush_packets', '1',
         'pipe:4'],{stdio:['ignore','ignore','pipe','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
