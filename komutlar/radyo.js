@@ -86,8 +86,10 @@ async function setUpFile(fromQueue,client,shout){
         readable = await getAudioStream(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
+    
 
     readable.on('data',async (chunk)=>{
+        console.log('data geldi lo');
         readable.pause();
         shout.send(chunk,chunk.length);
         const delay = Math.abs(shout.delay());
@@ -98,6 +100,11 @@ async function setUpFile(fromQueue,client,shout){
 
     readable.on('end',()=>{
         setUpFile(queue.length !==0,client,shout);
+    });
+
+
+    readable.on('error',(err)=>{
+        console.log(err);
     });
 
     nowPlaying.set({title:videoDetails.title},client);
