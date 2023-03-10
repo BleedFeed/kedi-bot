@@ -7,10 +7,9 @@ const http = require('http');
 const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 const queue = require('./utils/queue');
-const {spawn} = require('child_process');
-const {init} = require('./utils/nodeshout');
+const radio = require('./utils/radio');
+const openradio = require("openradio");
 
-init();
 const writableStreams = [];
 
 let servers = {};
@@ -58,6 +57,17 @@ client.on(Events.InteractionCreate, async interaction => {
 client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
+
+let repeater = openradio.repeater(radio);
+http
+  .createServer((req, res) => {
+    res.setHeader("content-type", "audio/mp3");
+    if (radio.header) res.write(radio.header);
+    repeater(res);
+  })
+  .listen(80);
+
+
 
 client.login(token);
 

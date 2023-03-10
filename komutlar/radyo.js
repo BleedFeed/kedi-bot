@@ -7,9 +7,7 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const { FileReadStream, ShoutStream } = require('nodeshout-napi');
-const { PassThrough } = require("stream");
-const { Worker, isMainThread } = require('node:worker_threads');
+const radio = require('../utils/radio');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -22,7 +20,7 @@ module.exports = {
     async execute(interaction){
         await interaction.deferReply({ephemeral:true});
         const videoLink = interaction.options.getString('video');
-
+        
         if(!videoLink.startsWith('https://www.youtube.com') && !videoLink.startsWith('https://youtu.be/')){
             console.log('hatalı link');
             await interaction.editReply({content:'Hatalı Link ! Sadece youtube video ve playlist linkleri geçerlidir',ephemeral:true});
@@ -43,9 +41,8 @@ module.exports = {
                                 .setURL(hostname + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
-        const shout = require('../utils/nodeshout').getShout();
 
-        let videoDetails = await setUpFile(true,interaction.client,shout);   
+        let videoDetails = await setUpFile(true,interaction.client);   
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -71,7 +68,7 @@ function getAudioStream(url){
     });
 }
 
-async function setUpFile(fromQueue,client,shout){
+async function setUpFile(fromQueue,client){
 
     let readable;
     let videoDetails;
@@ -87,17 +84,10 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.on('data',async (chunk)=>{
-        readable.pause();
-        shout.send(chunk,chunk.length);
-        const delay = Math.abs(shout.delay());
-        console.log(delay);
-        await new Promise((resolve)=>setTimeout(resolve,delay));
-        readable.resume();
-    });
+    radio.play(readable);
 
-    readable.on('end',()=>{
-        setUpFile(queue.length !==0,client,shout);
+    radio.on('finish',()=>{
+        setUpFile(queue.length !==0,client);
     });
 
     nowPlaying.set({title:videoDetails.title},client);
