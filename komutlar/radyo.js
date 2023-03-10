@@ -66,9 +66,12 @@ function getAudioStream(url){
         '-ac','2',
         '-codec:a','libmp3lame',
         '-b:a','128k',
-        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
+        'pipe:4'],{stdio:['ignore','ignore','pipe','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:4096})));
+        ffmpegProcess.stdio[2].on('data',(chunk)=>{
+            console.log('FFMPEG ERROR: ' + chunk.toString());
+        })
+        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:8192})));
     });
 }
 
