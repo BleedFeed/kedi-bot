@@ -10,6 +10,7 @@ const nowPlaying = require('../utils/nowPlaying');
 const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
 const { Worker, isMainThread } = require('node:worker_threads');
+const {readableSave} = require('../utils/readable');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -67,7 +68,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:8192})));
+        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:16384})));
     });
 }
 
@@ -89,7 +90,6 @@ async function setUpFile(fromQueue,client,shout){
 
 
     readable.on('data',async (chunk)=>{
-        console.log('data geldi lo');
         readable.pause();
         shout.send(chunk,chunk.length);
         const delay = Math.abs(shout.delay());
@@ -106,6 +106,9 @@ async function setUpFile(fromQueue,client,shout){
     readable.on('error',(err)=>{
         console.log(err);
     });
+
+    
+    readableSave = readable;
 
     nowPlaying.set({title:videoDetails.title},client);
 
