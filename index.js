@@ -3,12 +3,8 @@ const token = process.env.token;
 const fs = require('fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const http = require('http');
-const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 const queue = require('./utils/queue');
-const {spawn} = require('child_process');
-const {init} = require('./utils/nodeshout');
 
 init();
 const writableStreams = [];

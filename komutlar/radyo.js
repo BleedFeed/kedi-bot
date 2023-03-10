@@ -11,6 +11,8 @@ const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
 const { Worker, isMainThread } = require('node:worker_threads');
 const readableSave = require('../utils/readable');
+const {init} = require('./utils/nodeshout');
+let isMounted = false;
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -21,6 +23,10 @@ module.exports = {
 			.setDescription('video linki')
             .setRequired(true)),
     async execute(interaction){
+        if(!asda){
+            init();
+            isMounted = true;
+        }
         await interaction.deferReply({ephemeral:true});
         const videoLink = interaction.options.getString('video');
 
