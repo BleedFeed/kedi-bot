@@ -63,6 +63,10 @@ const server= http.createServer((req,res)=>{
 		res.socket.on('close',()=>{
 			writableStreams.splice(writableStreams.indexOf(res),1);
 		});
+
+		res.socket.on('error',(err)=>{
+			console.error(err);
+		});
 	
 		writableStreams.push(res);
 	}
