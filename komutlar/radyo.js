@@ -1,15 +1,12 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 require('dotenv').config();
 const ytdl = require('ytdl-core');
-const Throttle = require('throttle');
 const hostname = process.env.hostname;
 const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
-const { Worker, isMainThread } = require('node:worker_threads');
 const readableSave = require('../utils/readable');
 const {init} = require('../utils/nodeshout');
 let isMounted = false;
@@ -23,7 +20,7 @@ module.exports = {
 			.setDescription('video linki')
             .setRequired(true)),
     async execute(interaction){
-        if(!asda){
+        if(!isMounted){
             init();
             isMounted = true;
         }
