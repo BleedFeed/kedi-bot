@@ -7,8 +7,9 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
+const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
-const mainStream =  new PassThrough({highWaterMark:16384});
+const { Worker, isMainThread } = require('node:worker_threads');
 const readableSave = require('../utils/readable');
 
 module.exports = {
@@ -47,15 +48,6 @@ module.exports = {
 
         let videoDetails = await setUpFile(true,interaction.client,shout);   
 
-        mainStream.on('data',async (chunk)=>{
-            mainStream.pause();
-            shout.send(chunk,chunk.length);
-            const delay = Math.abs(shout.delay());
-            await new Promise((resolve)=>setTimeout(resolve,delay));
-            mainStream.resume();
-        });
-    
-
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
@@ -76,11 +68,11 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4]);
+        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:8192})));
     });
 }
 
-async function setUpFile(fromQueue,client,shout){
+async function setUpStream(fromQueue,client,shout){
 
     let readable;
     let videoDetails;
@@ -96,11 +88,13 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-    readable.pipe(mainStream,{end:false});
+
+    readable.on('data',async (chunk)=>{
+        console.log('veri geldi');
+    });
 
     readable.on('end',()=>{
-        console.log('end');
-        setUpFile(queue.length !==0,client,shout);
+        setUpStream(queue.length !==0,client,shout);
     });
 
 
