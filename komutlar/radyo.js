@@ -7,9 +7,8 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
-const { Worker, isMainThread } = require('node:worker_threads');
+const mainStream =  new PassThrough({highWaterMark:16384});
 const readable = require('../utils/readable');
 
 module.exports = {
@@ -48,6 +47,16 @@ module.exports = {
 
         let videoDetails = await setUpFile(true,interaction.client,shout);   
 
+        mainStream.on('data',async (chunk)=>{
+            readable.pause();
+            shout.send(chunk,chunk.length);
+            const delay = Math.abs(shout.delay());
+            console.log(delay);
+            await new Promise((resolve)=>setTimeout(resolve,delay));
+            readable.resume();
+        });
+    
+
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
@@ -68,7 +77,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:16384})));
+        resolve(ffmpegProcess.stdio[4]);
     });
 }
 
@@ -88,15 +97,7 @@ async function setUpFile(fromQueue,client,shout){
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
     }
 
-
-    readable.on('data',async (chunk)=>{
-        readable.pause();
-        shout.send(chunk,chunk.length);
-        const delay = Math.abs(shout.delay());
-        console.log(delay);
-        await new Promise((resolve)=>setTimeout(resolve,delay));
-        readable.resume();
-    });
+    readable.pipe(mainStream,{end:false});
 
     readable.on('end',()=>{
         setUpFile(queue.length !==0,client,shout);
@@ -108,7 +109,7 @@ async function setUpFile(fromQueue,client,shout){
     });
 
     
-    readableSave = readable;
+    readable.readable = readable;
 
     nowPlaying.set({title:videoDetails.title},client);
 

@@ -7,7 +7,7 @@ module.exports = {
     async execute(interaction,writableStreams){
         let readable = require('../utils/readable').readable
         if(readable !== null){
-            emit('end');
+            redable.emit('end');
         }
     }
 }
