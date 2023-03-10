@@ -10,7 +10,7 @@ const nowPlaying = require('../utils/nowPlaying');
 const { FileReadStream, ShoutStream } = require('nodeshout-napi');
 const { PassThrough } = require("stream");
 const { Worker, isMainThread } = require('node:worker_threads');
-const {readableSave} = require('../utils/readable');
+const readable = require('../utils/readable');
 
 module.exports = {
     data : new SlashCommandBuilder()
