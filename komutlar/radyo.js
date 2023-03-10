@@ -68,7 +68,7 @@ function getAudioStream(url){
         '-b:a','128k',
         'pipe:4'],{stdio:['pipe','pipe','pipe','pipe','pipe']});
         ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        ffmpegProcess.stdio[1].on('data',(chunk)=>{
+        ffmpegProcess.stderr.on('data',(chunk)=>{
             console.log('FFMPEG ERROR: ' + chunk.toString());
         })
         resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:4096})));
