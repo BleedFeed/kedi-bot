@@ -5,7 +5,9 @@ module.exports = {
 	.setName('geç')
 	.setDescription('geçer'),
     async execute(interaction,writableStreams){
-        require('../utils/readable').emit('end');
-
+        let readable = require('../utils/readable').readable
+        if(readable !== null){
+            emit('end');
+        }
     }
 }
