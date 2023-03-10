@@ -101,6 +101,7 @@ async function setUpStream(fromQueue,client,shout){
     });
 
     readable.on('end',()=>{
+        readable.destroy();
         setUpStream(queue.length !==0,client,shout);
     });
 
