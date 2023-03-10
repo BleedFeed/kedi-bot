@@ -46,7 +46,7 @@ module.exports = {
                 );
         const shout = require('../utils/nodeshout').getShout();
 
-        let videoDetails = await setUpFile(true,interaction.client,shout);   
+        let videoDetails = await setUpStream(true,interaction.client,shout);   
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
