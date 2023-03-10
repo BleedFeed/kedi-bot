@@ -8,6 +8,7 @@ const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const { PassThrough } = require("stream");
 const readableSave = require('../utils/readable');
+const nodeshout = require('nodeshout');
 var shout = null;
 
 module.exports = {
