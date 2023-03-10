@@ -6,7 +6,6 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 const queue = require('./utils/queue');
 
-init();
 const writableStreams = [];
 
 let servers = {};
