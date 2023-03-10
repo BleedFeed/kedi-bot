@@ -45,7 +45,6 @@ module.exports = {
                                 .setURL(hostname + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
-        const shout = require('../utils/nodeshout').getShout();
 
         let videoDetails = await setUpStream(true,interaction.client,shout);   
 
@@ -124,21 +123,21 @@ function initNodeShout(){
     nodeshout.init();
 
     // Create a shout instance
-    shout = nodeshout.create();
+    let shoutInstance = nodeshout.create();
     
     // Configure it
-    shout.setHost('localhost');
-    shout.setPort(80);
-    shout.setUser('source');
-    shout.setPassword('hackme');
-    shout.setMount('radyo');
-    shout.setFormat(1); // 0=ogg, 1=mp3
-    shout.setAudioInfo('bitrate', '128');
-    shout.setAudioInfo('samplerate', '44100');
-    shout.setAudioInfo('channels', '2');
-    if (shout.open() !== nodeshout.ErrorTypes.SUCCESS)
+    shoutInstance.setHost('localhost');
+    shoutInstance.setPort(80);
+    shoutInstance.setUser('source');
+    shoutInstance.setPassword('hackme');
+    shoutInstance.setMount('radyo');
+    shoutInstance.setFormat(1); // 0=ogg, 1=mp3
+    shoutInstance.setAudioInfo('bitrate', '128');
+    shoutInstance.setAudioInfo('samplerate', '44100');
+    shoutInstance.setAudioInfo('channels', '2');
+    if (shoutInstance.open() !== nodeshout.ErrorTypes.SUCCESS)
     {
     throw 0;
     }
-    return(shout);
+    return(shoutInstance);
 }
