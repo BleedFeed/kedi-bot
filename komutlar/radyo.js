@@ -71,7 +71,7 @@ function getAudioStream(url){
         ffmpegProcess.stdio[2].on('data',(chunk)=>{
             console.log('FFMPEG ERROR: ' + chunk.toString());
         })
-        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:8192})));
+        resolve(ffmpegProcess.stdio[4].pipe(new PassThrough({highWaterMark:4096})));
     });
 }
 
@@ -93,7 +93,10 @@ async function setUpStream(fromQueue,client,shout){
 
 
     readable.on('data',async (chunk)=>{
-        console.log('veri geldi');
+        readable.pause();
+        shout.send(chunk,chunk.length);
+        await new Promise((resolve)=>{setTimeout(resolve,shout.delay())});
+        readable.resume();
     });
 
     readable.on('end',()=>{
