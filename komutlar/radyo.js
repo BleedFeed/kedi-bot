@@ -9,7 +9,7 @@ const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const { PassThrough } = require("stream");
 const mainStream =  new PassThrough({highWaterMark:16384});
-const readable = require('../utils/readable');
+const readableSave = require('../utils/readable');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -109,7 +109,7 @@ async function setUpFile(fromQueue,client,shout){
     });
 
     
-    readable.readable = readable;
+    readableSave.readable = readable;
 
     nowPlaying.set({title:videoDetails.title},client);
 
