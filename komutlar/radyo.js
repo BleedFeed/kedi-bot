@@ -51,7 +51,6 @@ module.exports = {
             mainStream.pause();
             shout.send(chunk,chunk.length);
             const delay = Math.abs(shout.delay());
-            console.log(delay);
             await new Promise((resolve)=>setTimeout(resolve,delay));
             mainStream.resume();
         });
@@ -100,6 +99,7 @@ async function setUpFile(fromQueue,client,shout){
     readable.pipe(mainStream,{end:false});
 
     readable.on('end',()=>{
+        console.log('end');
         setUpFile(queue.length !==0,client,shout);
     });
 
