@@ -139,5 +139,7 @@ shout.setAudioInfo('bitrate', '128');
 shout.setAudioInfo('samplerate', '44100');
 shout.setAudioInfo('channels', '2');
 
+shout.open();
+
 return (shout);
 }
