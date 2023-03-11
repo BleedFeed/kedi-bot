@@ -100,8 +100,6 @@ async function setUpStream(fromQueue,writableStreams,client){
     
     const readable = process.stdio[4].pipe(new Throttle(16384));
 
-    playingReadable.emit = readable.emit;
-
     nowPlaying.set({title:videoDetails.title},client);
 
 
@@ -122,6 +120,8 @@ async function setUpStream(fromQueue,writableStreams,client){
     readable.on('error',(err)=>{
         console.log(err);
     });
+
+    playingReadable.emit = readable.emit;
 
     return(videoDetails);
 }
