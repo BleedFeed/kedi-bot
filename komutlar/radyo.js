@@ -112,6 +112,7 @@ async function setUpStream(fromQueue,writableStreams,client){
     });
 
     readable.on('end',()=>{
+        console.log('bitti');
         readable.destroy();
 		process.kill('SIGKILL');
         setUpStream(queue.length !==0,writableStreams,client);

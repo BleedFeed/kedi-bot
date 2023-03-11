@@ -8,7 +8,6 @@ module.exports = {
     async execute(interaction){
         if(read.playingRedable !== null){
             read.playingRedable.emit('end');
-            interaction.reply('gecildi');
         }
     }
 }
