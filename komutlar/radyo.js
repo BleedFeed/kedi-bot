@@ -139,8 +139,5 @@ shout.setAudioInfo('bitrate', '192');
 shout.setAudioInfo('samplerate', '44100');
 shout.setAudioInfo('channels', '2');
 
-if(shout.open() !== nodeshout.ErrorTypes.SUCCESS){
-    throw 0;
-}
 return (shout);
 }
