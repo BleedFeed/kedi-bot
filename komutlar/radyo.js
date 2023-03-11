@@ -108,10 +108,6 @@ async function setUpStream(fromQueue,writableStreams,client){
     });
 
     readable.on('end',()=>{
-        console.log('bitti');
-        readable.destroy();
-		process.kill();
-        console.log(queue);
         setUpStream(queue.length !==0,writableStreams,client);
     });
 
@@ -120,7 +116,7 @@ async function setUpStream(fromQueue,writableStreams,client){
         console.log(err);
     });
 
-    playingReadable.stream = readable;
+    playingReadable.process = process;
 
     return(videoDetails);
 }

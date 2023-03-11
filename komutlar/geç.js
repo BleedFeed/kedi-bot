@@ -7,8 +7,8 @@ module.exports = {
 	.setName('geç')
 	.setDescription('geçer'),
     async execute(interaction){
-        if(playingReadable.stream !== null){
-            playingReadable.stream.unpipe();
+        if(playingReadable.process !== null){
+            playingReadable.process.kill();
             interaction.reply({content:'geçildi',ephemeral:true});
         }
         else{
