@@ -1,3 +1,3 @@
 module.exports = {
-    playingRedable: null
+    playingReadable: null
 }
