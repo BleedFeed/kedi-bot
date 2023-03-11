@@ -6,6 +6,7 @@ const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
 const hostname = process.env.hostname;
+const Throttle = require('throttle');
 
 
 module.exports = {
@@ -56,7 +57,6 @@ function getAudioStream(url){
 
 
         const ffmpegProcess = spawn('ffmpeg',[
-        '-readrate','2',
         '-i','pipe:3',
         '-readrate','1.1',
         '-f','mp3',
@@ -83,21 +83,19 @@ async function setUpStream(fromQueue){
 
     let videoDetails
 	let process;
-	let readable;
 
     if(fromQueue){
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
         process = await getAudioStream(queue[0]);
-		readable = process.stdio[4];
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
         process = await getAudioStream(song);
-		readable = process.stdio[4];
     }
-
+    
+    const readable = process.stdio[4].pipe(new Throttle(16384));
 
     readable.on('data',async (chunk)=>{
 		for(let i = 0; i < writableStreams.length;i++){
