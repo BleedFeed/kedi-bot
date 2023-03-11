@@ -1,14 +1,10 @@
 const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
 require('dotenv').config();
 const ytdl = require('ytdl-core');
-const Throttle = require('throttle');
-const hostname = process.env.hostname;
 const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
-const { PassThrough } = require("stream");
 const nowPlaying = require('../utils/nowPlaying');
-const mainStream = new PassThrough();
 
 
 module.exports = {
@@ -31,7 +27,6 @@ module.exports = {
         }
 
         queue.push(videoLink);
-        console.log(nowPlaying);
         if(nowPlaying.playing.title){
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
@@ -63,18 +58,28 @@ function getAudioStream(url){
 
     return new Promise(async(resolve,reject)=>{
 
-        const ytdlStream = await ytdl(url,{filter:'audioonly',quality:'highestaudio'});
+		const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
+
 
         const ffmpegProcess = spawn('ffmpeg',[
+		'-re',
         '-i','pipe:3',
         '-f','mp3',
         '-ar','44100',
         '-ac','2',
-        '-codec:a','libmp3lame',
         '-b:a','128k',
-        'pipe:4'],{stdio:['ignore','ignore','ignore','pipe','pipe']});
-        ytdlStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess.stdio[4].pipe(new Throttle(16384)));
+        '-codec:a','libmp3lame',
+		'-flush_packets','1',
+        'pipe:4',
+		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
+		ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
+		ffmpegProcess.stderr.on('data',(chunk)=>{
+			console.log(chunk.toString());
+		});
+		ffmpegProcess.on('close',()=>{
+			ytdlpProcess.kill('SIGKILL');
+		})
+        resolve(ffmpegProcess);
     });
 }
 
