@@ -9,10 +9,6 @@ module.exports = {
     async execute(interaction){
         if(playingReadable.stream !== null){
             playingReadable.stream.emit('end');
-            interaction.reply('gecildi');
-        }
-        else{
-        interaction.reply('gecilemedi');
         }
     }
 }
