@@ -56,8 +56,8 @@ function getAudioStream(url){
 
 
         const ffmpegProcess = spawn('ffmpeg',[
-		'-readrate','1.1',
         '-i','pipe:3',
+        '-readrate','1.1',
         '-f','mp3',
         '-ar','44100',
         '-ac','2',
