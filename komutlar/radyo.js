@@ -91,6 +91,7 @@ async function setUpStream(fromQueue,writableStreams,client){
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
+        console.log(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
         process = await getAudioStream(song);
     }
