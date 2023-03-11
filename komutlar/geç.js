@@ -6,6 +6,7 @@ module.exports = {
 	.setName('geç')
 	.setDescription('geçer'),
     async execute(interaction){
+        console.log(read);
         if(read.emit !== null){
             read.emit('end');
         }
