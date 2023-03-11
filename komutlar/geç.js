@@ -8,7 +8,12 @@ module.exports = {
 	.setDescription('geçer'),
     async execute(interaction){
         if(playingReadable.stream !== null){
-            playingReadable.stream.emit('end');
+            playingReadable.stream.unpipe();
+            playingReadable.stream.push(null);
+            interaction.reply({content:'geçildi',ephemeral:true});
+        }
+        else{
+            interaction.reply({content:'geçilemedi',ephemeral:true});
         }
     }
 }

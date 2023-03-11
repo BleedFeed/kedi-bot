@@ -73,7 +73,7 @@ function getAudioStream(url){
 		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
 		ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
 		ffmpegProcess.on('close',()=>{
-			ytdlpProcess.kill('SIGKILL');
+			ytdlpProcess.kill();
 		})
         resolve(ffmpegProcess);
     });
@@ -108,6 +108,7 @@ async function setUpStream(fromQueue,writableStreams,client){
 
     readable.on('end',()=>{
         console.log('bitti');
+        readable.destroy();
 		process.kill();
         setUpStream(queue.length !==0,writableStreams,client);
     });
