@@ -5,6 +5,7 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
+const hostname = process.env.hostname;
 
 
 module.exports = {
