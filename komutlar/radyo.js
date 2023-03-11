@@ -72,9 +72,6 @@ function getAudioStream(url){
         'pipe:4',
 		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
 		ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
-		ffmpegProcess.stderr.on('data',(chunk)=>{
-			console.log(chunk.toString());
-		});
 		ffmpegProcess.on('close',()=>{
 			ytdlpProcess.kill('SIGKILL');
 		})
