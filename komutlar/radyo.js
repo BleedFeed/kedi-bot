@@ -83,6 +83,7 @@ async function setUpStream(fromQueue,writableStreams,client){
 
     let videoDetails
 	let process;
+    let lastChunk;
 
     if(fromQueue){
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
