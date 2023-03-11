@@ -42,13 +42,6 @@ module.exports = {
 
         let videoDetails = await setUpStream(true,interaction.client);
 
-
-        mainStream.on('data',(chunk)=>{
-            for(let i = 0; i < writableStreams.length;i++){
-                writableStreams[i].write(chunk);
-            }
-        });
-
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
@@ -83,32 +76,42 @@ function getAudioStream(url){
     });
 }
 
-async function setUpStream(fromQueue,client){
+async function setUpStream(fromQueue){
 
-    let readable;
-    let videoDetails;
+    let videoDetails
+	let process;
+	let readable;
 
     if(fromQueue){
-        readable = await getAudioStream(queue[0]);
-        videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
+        videoDetails = await ytdl.getBasicInfo(queue[0]);
+        process = await getAudioStream(queue[0]);
+		readable = process.stdio[4];
+        queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        readable = await getAudioStream(song);
-        videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
-
+        videoDetails = await ytdl.getBasicInfo(song);
+        process = await getAudioStream(song);
+		readable = process.stdio[4];
     }
 
-    nowPlaying.set({title:videoDetails.title},client);
-    readable.pipe(mainStream,{end:false});    
 
-    readable.on('end',async ()=>{
-        readable.unpipe();
-        if(fromQueue){
-            queue.shift();
-        }
-        setUpStream(queue.length !==0,client);
+    readable.on('data',async (chunk)=>{
+		for(let i = 0; i < writableStreams.length;i++){
+			writableStreams[i].write(chunk);
+		}
     });
-    
+
+    readable.on('end',()=>{
+        readable.destroy();
+		process.kill('SIGKILL');
+        setUpStream(queue.length !==0);
+    });
+
+
+    readable.on('error',(err)=>{
+        console.log(err);
+    });
+
     return(videoDetails);
 }
