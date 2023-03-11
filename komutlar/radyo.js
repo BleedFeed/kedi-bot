@@ -8,6 +8,7 @@ const nowPlaying = require('../utils/nowPlaying');
 const hostname = process.env.hostname;
 const Throttle = require('throttle');
 const playingReadable = require('../utils/playingReadable');
+const nodeshout = require('nodeshout');
 
 
 module.exports = {
@@ -43,10 +44,9 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
+        const shout = initNodeShout();
 
-        let writableStreams = require('../utils/writableStreams');
-
-        let videoDetails = await setUpStream(true,writableStreams,interaction.client);
+        let videoDetails = await setUpStream(true,shout,interaction.client);
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -79,11 +79,10 @@ function getAudioStream(url){
     });
 }
 
-async function setUpStream(fromQueue,writableStreams,client){
+async function setUpStream(fromQueue,shout,client){
 
     let videoDetails
 	let process;
-    let lastChunk;
 
     if(fromQueue){
         videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
@@ -92,20 +91,20 @@ async function setUpStream(fromQueue,writableStreams,client){
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        console.log(song);
         videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
         process = await getAudioStream(song);
     }
     
-    const readable = process.stdio[4].pipe(new Throttle(16384));
+    const readable = process.stdio[4];
 
     nowPlaying.set({title:videoDetails.title},client);
 
 
     readable.on('data',async (chunk)=>{
-		for(let i = 0; i < writableStreams.length;i++){
-			writableStreams[i].write(chunk);
-		}
+        readable.pause();
+        shout.send(chunk);
+        await new Promise(resolve => setTimeout(resolve,shout.delay()));
+        readable.resume();
     });
 
     readable.on('end',()=>{
@@ -120,4 +119,28 @@ async function setUpStream(fromQueue,writableStreams,client){
     playingReadable.process = process;
 
     return(videoDetails);
+}
+
+function initNodeShout(){
+    // Initalize
+nodeshout.init();
+
+// Create a shout instance
+const shout = nodeshout.create();
+
+// Configure it
+shout.setHost('localhost');
+shout.setPort(8000);
+shout.setUser('source');
+shout.setPassword('password');
+shout.setMount('mount');
+shout.setFormat(1); // 0=ogg, 1=mp3
+shout.setAudioInfo('bitrate', '192');
+shout.setAudioInfo('samplerate', '44100');
+shout.setAudioInfo('channels', '2');
+
+if(shout.open() !== nodeshout.ErrorTypes.SUCCESS){
+    throw 0;
+}
+return (shout);
 }
