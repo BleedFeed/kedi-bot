@@ -6,7 +6,7 @@ module.exports = {
 	.setName('geç')
 	.setDescription('geçer'),
     async execute(interaction){
-        if(read.playingRedable !== null){
+        if(read.emit !== null){
             read.emit('end');
         }
     }
