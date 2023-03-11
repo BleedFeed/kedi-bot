@@ -119,7 +119,7 @@ async function setUpStream(fromQueue,shout,client){
         console.log(err);
     });
 
-    playingReadable.process = process;
+    playingReadable.stream = readable;
 
     return(videoDetails);
 }
