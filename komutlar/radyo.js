@@ -100,7 +100,7 @@ async function setUpStream(fromQueue,writableStreams,client){
     
     const readable = process.stdio[4].pipe(new Throttle(16384));
 
-    playingReadable.playingRedable = readable;
+    playingReadable.playingReadable = readable;
 
     nowPlaying.set({title:videoDetails.title},client);
 
