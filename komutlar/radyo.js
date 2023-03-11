@@ -110,6 +110,7 @@ async function setUpStream(fromQueue,writableStreams,client){
         console.log('bitti');
         readable.destroy();
 		process.kill();
+        console.log(queue);
         setUpStream(queue.length !==0,writableStreams,client);
     });
 
