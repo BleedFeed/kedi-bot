@@ -6,7 +6,6 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const http = require('http');
 const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
-const writableStreams = require('./utils/writableStreams');
 
 client.commands = new Collection();
 

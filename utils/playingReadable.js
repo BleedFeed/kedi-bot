@@ -1,3 +1,3 @@
 module.exports = {
-    stream : null
+    process : null
 }
