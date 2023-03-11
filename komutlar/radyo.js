@@ -102,13 +102,13 @@ async function setUpStream(fromQueue,shout,client){
 
     readable.on('data',async (chunk)=>{
         readable.pause();
-        shout.send(chunk);
+        shout.send(chunk,chunk.length);
         await new Promise(resolve => setTimeout(resolve,shout.delay()));
         readable.resume();
     });
 
     readable.on('end',()=>{
-        setUpStream(queue.length !==0,writableStreams,client);
+        setUpStream(queue.length !==0,shout,client);
     });
 
 
