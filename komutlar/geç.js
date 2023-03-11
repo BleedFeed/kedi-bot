@@ -9,7 +9,6 @@ module.exports = {
     async execute(interaction){
         if(playingReadable.stream !== null){
             playingReadable.stream.unpipe();
-            playingReadable.stream.push(null);
             interaction.reply({content:'geçildi',ephemeral:true});
         }
         else{
