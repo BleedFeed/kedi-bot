@@ -5,6 +5,7 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
+const playingReadable = require('../utils/playingReadable');
 const hostname = process.env.hostname;
 const Throttle = require('throttle');
 
@@ -96,6 +97,7 @@ async function setUpStream(fromQueue,writableStreams,client){
     
     const readable = process.stdio[4].pipe(new Throttle(16384));
 
+    playingReadable.playingRedable = readable;
 
     nowPlaying.set({title:videoDetails.title},client);
 
