@@ -52,25 +52,4 @@ client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
-const server= http.createServer((req,res)=>{
-	if(req.url ==='/radyo'){
-		res.writeHead(200,{'Content-Type':'audio/mpeg','Connection':'keep-alive'});
-		res.socket.on('close',()=>{
-			writableStreams.splice(writableStreams.indexOf(res),1);
-		});
-
-		res.socket.on('error',(err)=>{
-			console.error(err);
-		});
-	
-		writableStreams.push(res);
-	}
-	else if(req.url === '/'){
-		res.writeHead(200,{'Content-Type':'text; charset=utf8'});
-		res.end('Hoşgeldiniz');
-	}
-});
-
-server.listen(port);
-
 client.login(token);
