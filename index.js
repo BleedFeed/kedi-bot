@@ -6,12 +6,7 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const http = require('http');
 const port = process.env.port;
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
-const queue = require('./utils/queue');
-const {spawn} = require('child_process');
-
-const writableStreams = [];
-
-let servers = {};
+const writableStreams = require('./utils/writableStreams');
 
 client.commands = new Collection();
 
@@ -41,7 +36,7 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 
 	try {
-		await command.execute(interaction,writableStreams);
+		await command.execute(interaction);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {

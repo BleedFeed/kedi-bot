@@ -18,7 +18,7 @@ module.exports = {
 		option.setName('video')
 			.setDescription('video linki')
             .setRequired(true)),
-    async execute(interaction,writableStreams){
+    async execute(interaction){
         await interaction.deferReply({ephemeral:true});
 
         const videoLink = interaction.options.getString('video');
@@ -42,6 +42,9 @@ module.exports = {
                                 .setURL(hostname + '/radyo')
                                 .setStyle(ButtonStyle.Link),
                 );
+
+
+        let writableStreams = require('../utils/writableStreams');
 
         let videoDetails = await setUpStream(true,writableStreams,interaction.client);
 

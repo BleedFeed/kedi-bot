@@ -8,7 +8,7 @@ module.exports = {
     data:new SlashCommandBuilder()
 	.setName('katıl')
 	.setDescription('odanıza katılıp radyoyu çalar'),
-    async execute(interaction,writableStreams){
+    async execute(interaction){
         if(!!interaction.guild.members.me.voice.channelId){
             interaction.reply({content:'ben zaten kanaldyım kardesm',ephemeral:true});
             return;
