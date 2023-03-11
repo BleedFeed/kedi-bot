@@ -73,7 +73,7 @@ function getAudioStream(url){
 		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
 		ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
 		ffmpegProcess.on('close',()=>{
-			ytdlpProcess.kill();
+			// ytdlpProcess.kill();
 		})
         resolve(ffmpegProcess);
     });
