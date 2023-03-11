@@ -42,7 +42,7 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
-        let videoDetails = await setUpStream(true,interaction.client);
+        let videoDetails = await setUpStream(true,writableStreams,interaction.client);
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -78,7 +78,7 @@ function getAudioStream(url){
     });
 }
 
-async function setUpStream(fromQueue){
+async function setUpStream(fromQueue,writableStreams,client){
 
     let videoDetails
 	let process;
@@ -96,6 +96,10 @@ async function setUpStream(fromQueue){
     
     const readable = process.stdio[4].pipe(new Throttle(16384));
 
+
+    nowPlaying.set({title:videoDetails.title},client);
+
+
     readable.on('data',async (chunk)=>{
 		for(let i = 0; i < writableStreams.length;i++){
 			writableStreams[i].write(chunk);
@@ -105,7 +109,7 @@ async function setUpStream(fromQueue){
     readable.on('end',()=>{
         readable.destroy();
 		process.kill('SIGKILL');
-        setUpStream(queue.length !==0);
+        setUpStream(queue.length !==0,writableStreams,client);
     });
 
 
