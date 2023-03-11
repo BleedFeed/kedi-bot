@@ -1,14 +1,18 @@
 const {SlashCommandBuilder} = require('discord.js');
-const read = require('../utils/playingReadable');
+const playingReadable = require('../utils/playingReadable');
+
 
 module.exports = {
     data:new SlashCommandBuilder()
 	.setName('geç')
 	.setDescription('geçer'),
     async execute(interaction){
-        console.log(read);
-        if(read.emit !== null){
-            read.emit('end');
+        if(playingReadable.stream !== null){
+            playingReadable.stream.emit('end');
+            interaction.reply('gecildi');
+        }
+        else{
+        interaction.reply('gecilemedi');
         }
     }
 }

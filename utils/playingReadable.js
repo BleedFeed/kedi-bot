@@ -1,3 +1,3 @@
 module.exports = {
-    playingReadable: null
+    stream : null
 }

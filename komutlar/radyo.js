@@ -5,9 +5,9 @@ const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const nowPlaying = require('../utils/nowPlaying');
-const playingReadable = require('../utils/playingReadable');
 const hostname = process.env.hostname;
 const Throttle = require('throttle');
+const playingReadable = require('../utils/playingReadable');
 
 
 module.exports = {
@@ -121,7 +121,7 @@ async function setUpStream(fromQueue,writableStreams,client){
         console.log(err);
     });
 
-    playingReadable.emit = readable.emit;
+    playingReadable.stream = readable;
 
     return(videoDetails);
 }
