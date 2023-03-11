@@ -84,14 +84,14 @@ async function setUpStream(fromQueue){
 	let readable;
 
     if(fromQueue){
-        videoDetails = await ytdl.getBasicInfo(queue[0]);
+        videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
         process = await getAudioStream(queue[0]);
 		readable = process.stdio[4];
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        videoDetails = await ytdl.getBasicInfo(song);
+        videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
         process = await getAudioStream(song);
 		readable = process.stdio[4];
     }
