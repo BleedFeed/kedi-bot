@@ -56,11 +56,7 @@ function getAudioStream(url){
 
         const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
             
-        const stream = ytdlpProcess.stdio[1];
-        
-        console.log(url);
-
-        const ffmpegProcess = ffmpeg(stream)
+        const ffmpegProcess = ffmpeg(ytdlpProcess.stdio[1])
         .inputOptions(['-re','-flush_packets','1'])
         .outputFormat('mp3')
         .audioChannels(2)
@@ -111,6 +107,7 @@ async function setUpStream(fromQueue,client){
     });
 
     readable.on('end',()=>{
+        readable.removeAllListeners('data');
         ffmpegProcess.kill();
         setUpStream(queue.length !==0,client);
     });
