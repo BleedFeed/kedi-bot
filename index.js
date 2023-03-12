@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const http = require('http');
-const writableStreams = require('./utils/writableStreams');
+const {writableStreams} = require('./variables');
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 
 client.commands = new Collection();
@@ -56,6 +56,10 @@ http.createServer((req,res)=>{
     res.on('close',()=>{
         writableStreams.splice(writableStreams.indexOf(res),1);
     });
+
+	res.on('error',(err)=>{
+		console.log(err);
+	});
     writableStreams.push(res);
 }).listen(80);
 

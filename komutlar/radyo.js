@@ -1,13 +1,12 @@
-const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder} = require("discord.js");
+const { SlashCommandBuilder, ButtonStyle, ActionRowBuilder ,ButtonBuilder,ActivityType} = require("discord.js");
+const {getBasicInfo} = require('ytdl-core');
 require('dotenv').config();
-const ytdl = require('ytdl-core');
-const queue = require('../utils/queue');
-const songs = require('../utils/songs');
 const {spawn} = require('child_process');
 const hostname = process.env.hostname;
-const Throttle = require('throttle');
-const writableStreams = require('../utils/writableStreams');
-let isPlaying = false;
+const {songs,queue,writableStreams} = require('../variables');
+const variables = require('../variables');
+const ffmpeg = require('fluent-ffmpeg');
+const { PassThrough } = require("stream");
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -29,7 +28,7 @@ module.exports = {
         }
 
         queue.push(videoLink);
-        if(isPlaying){
+        if(variables.playingStream !== null){
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
@@ -57,39 +56,53 @@ function getAudioStream(url){
 
         const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
             
-        const ffmpegProcess = spawn('ffmpeg',[
-            '-i','pipe:3',
-            '-f','mp3',
-            '-tune', 'zerolatency',
-            '-ar','44100',
-            '-ac','2',
-            '-b:a','128k',
-            '-codec:a','libmp3lame',
-            '-flush_packets','1',
-            'pipe:4',
-            ],{stdio:['ignore','pipe','pipe','pipe','pipe']});
-            ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
-            resolve(ffmpegProcess);
+        const stream = ytdlpProcess.stdio[1];
+
+
+
+
+        const ffmpegProcess = ffmpeg(stream)
+        .inputOptions(['-readrate','1.1','-flush_packets','1'])
+        .outputFormat('mp3')
+        .audioChannels(2)
+        .audioBitrate(128)
+        .audioFrequency(22050)
+        .audioCodec('libmp3lame')
+
+        ffmpegProcess.on('error',(err)=>{
+            console.log(err);
+            ytdlpProcess.kill();
+        })
+
+        ffmpegProcess.on('close',(code,signal)=>{
+            console.log('exit code is : ' + code);
+            console.log('exit signal is : ' + signal);
+            ytdlpProcess.kill();
+        })
+        resolve(ffmpegProcess)
     });
 }
 
 async function setUpStream(fromQueue,client){
 
     let videoDetails
-	let process;
+	let ffmpegProcess;
 
     if(fromQueue){
-        videoDetails = (await ytdl.getBasicInfo(queue[0])).videoDetails;
-        process = await getAudioStream(queue[0]);
+        videoDetails = (await getBasicInfo(queue[0])).videoDetails;
+        ffmpegProcess = await getAudioStream(queue[0]);
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        videoDetails = (await ytdl.getBasicInfo(song)).videoDetails;
-        process = await getAudioStream(song);
+        videoDetails = (await getBasicInfo(song)).videoDetails;
+        ffmpegProcess = await getAudioStream(song);
     }
     
-    const readable = process.stdio[4].pipe(new Throttle(16384));
+    let readable = new PassThrough();
+
+
+    ffmpegProcess.output(readable);
 
     readable.on('data',(chunk)=>{
         for(let i = 0; i< writableStreams.length;i++){
@@ -98,10 +111,20 @@ async function setUpStream(fromQueue,client){
     });
 
     readable.on('end',()=>{
+        ffmpegProcess.kill();
         setUpStream(queue.length !==0,client);
     });
 
-    isPlaying = true;
+    readable.on('error',(err)=>{
+        console.log(err);
+    })
+
+    variables.playingStream = readable;
+
+    client.user.setActivity(videoDetails.title, { type: ActivityType.Listening});
+
+    ffmpegProcess.run();
+
 
     return(videoDetails);
 }
