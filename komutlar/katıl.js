@@ -21,8 +21,6 @@ module.exports = {
 
         const resource = voice.createAudioResource('http://13.50.73.94');
 
-        resource.on('')
-
         const player = voice.createAudioPlayer()
 
 
