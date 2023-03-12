@@ -24,9 +24,9 @@ module.exports = {
         const player = voice.createAudioPlayer()
 
         const connection = voice.joinVoiceChannel({
-            channelId: channel.id,
-            guildId: channel.guild.id,
-            adapterCreator: channel.guild.voiceAdapterCreator,
+            channelId: interaction.member.voice.channelId,
+            guildId: interaction.guildId,
+            adapterCreator: interaction.guild.voiceAdapterCreator,
         });
 
         connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
