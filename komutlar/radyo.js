@@ -3,7 +3,7 @@ const {getBasicInfo} = require('ytdl-core');
 require('dotenv').config();
 const {spawn} = require('child_process');
 const hostname = process.env.hostname;
-const {songs,queue,writableStreams} = require('../variables');
+const {songs,queue} = require('../variables');
 const variables = require('../variables');
 const ffmpeg = require('fluent-ffmpeg');
 const { PassThrough } = require("stream");

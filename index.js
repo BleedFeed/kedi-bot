@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const http = require('http');
-const {writableStreams} = require('./variables');
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates] });
 
 client.commands = new Collection();
@@ -50,18 +49,5 @@ client.on(Events.InteractionCreate, async interaction => {
 client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
-
-http.createServer((req,res)=>{
-    res.writeHead(200,{'Content-Type':'audio/mpeg','Connection' : 'keep-alive'});
-    res.on('close',()=>{
-        writableStreams.splice(writableStreams.indexOf(res),1);
-    });
-
-	res.on('error',(err)=>{
-		console.log(err);
-	});
-    writableStreams.push(res);
-}).listen(80);
-
 
 client.login(token);
