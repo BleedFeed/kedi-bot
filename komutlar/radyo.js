@@ -62,7 +62,7 @@ function getAudioStream(url){
 
 
         const ffmpegProcess = ffmpeg(stream)
-        .inputOptions(['-readrate','1.1','-flush_packets','1'])
+        .inputOptions(['-re','-flush_packets','1'])
         .outputFormat('mp3')
         .audioChannels(2)
         .audioBitrate(128)
