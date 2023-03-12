@@ -7,6 +7,7 @@ const {songs,queue,writableStreams} = require('../variables');
 const variables = require('../variables');
 const ffmpeg = require('fluent-ffmpeg');
 const { PassThrough } = require("stream");
+const nodeshout = require('nodeshout');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -33,6 +34,24 @@ module.exports = {
             return;
         }
 
+        nodeshout.init();
+
+        // Create a shout instance
+        const shout = nodeshout.create();
+
+        // Configure it
+        shout.setHost('localhost');
+        shout.setPort(8000);
+        shout.setUser('source');
+        shout.setPassword('hackme');
+        shout.setMount('radyo');
+        shout.setFormat(1); // 0=ogg, 1=mp3
+        shout.setAudioInfo('bitrate', '128');
+        shout.setAudioInfo('samplerate', '44100');
+        shout.setAudioInfo('channels', '2');
+
+        shout.open();
+
         const row = new ActionRowBuilder()
                 .addComponents(
                         new ButtonBuilder()
@@ -42,7 +61,7 @@ module.exports = {
                 );
 
 
-        let videoDetails = await setUpStream(true,interaction.client);
+        let videoDetails = await setUpStream(true,interaction.client,shout);
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -57,7 +76,7 @@ function getAudioStream(url){
         const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
             
         const ffmpegProcess = ffmpeg(ytdlpProcess.stdio[1])
-        .inputOptions(['-re','-flush_packets','1'])
+        .inputOptions(['-flush_packets','1'])
         .outputFormat('mp3')
         .audioChannels(2)
         .audioBitrate(128)
@@ -78,7 +97,7 @@ function getAudioStream(url){
     });
 }
 
-async function setUpStream(fromQueue,client){
+async function setUpStream(fromQueue,client,shout){
 
     let videoDetails;
 	let ffmpegProcess;
@@ -97,19 +116,18 @@ async function setUpStream(fromQueue,client){
 
     let readable = new PassThrough();
 
-
     ffmpegProcess.output(readable);
 
-    readable.on('data',(chunk)=>{
-        for(let i = 0; i< writableStreams.length;i++){
-            writableStreams[i].write(chunk);
-        }
+    readable.on('data',async (chunk)=>{
+        readable.pause();
+        shout.send(chunk,chunk.length);
+        await new Promise(resolve=> setTimeout(resolve,shout.delay()));
+        readable.resume();
     });
 
     readable.on('end',()=>{
-        readable.removeAllListeners('data');
-        ffmpegProcess.kill();
-        setUpStream(queue.length !==0,client);
+        ffmpegProcess.stdin.write('q');
+        setUpStream(queue.length !==0,client,shout);
     });
 
     readable.on('error',(err)=>{
@@ -121,7 +139,6 @@ async function setUpStream(fromQueue,client){
     client.user.setActivity(videoDetails.title, { type: ActivityType.Listening});
 
     ffmpegProcess.run();
-
 
     return(videoDetails);
 }
