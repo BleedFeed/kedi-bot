@@ -29,7 +29,7 @@ module.exports = {
         }
 
         queue.push(videoLink);
-        if(){
+        if(isPlaying){
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
