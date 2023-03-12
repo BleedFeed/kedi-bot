@@ -11,6 +11,9 @@ const playingReadable = require('../utils/playingReadable');
 const { PassThrough } = require("stream");
 const writableStreams = require("../utils/writableStreams");
 const mainStream = new PassThrough();
+const YTDlpWrap = require('yt-dlp-wrap').default;
+const ytDlpWrap = new YTDlpWrap('./yt-dlp');
+
 
 
 module.exports = {
@@ -64,9 +67,12 @@ function getAudioStream(url){
 
     return new Promise(async(resolve,reject)=>{
 
-		const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
-
-
+		let readableStream = ytDlpWrap.execStream([
+            url,
+            '-f',
+            'ba',
+        ]);
+            
         const ffmpegProcess = spawn('ffmpeg',[
         '-i','pipe:3',
         '-f','mp3',
@@ -78,10 +84,7 @@ function getAudioStream(url){
 		'-flush_packets','1',
         'pipe:4',
 		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
-		ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
-		ffmpegProcess.on('close',()=>{
-			ytdlpProcess.kill();
-		})
+		readableStream.pipe(ffmpegProcess.stdio[3]);
         resolve(ffmpegProcess);
     });
 }
@@ -102,7 +105,7 @@ async function setUpStream(fromQueue,client){
         process = await getAudioStream(song);
     }
     
-    const readable = process.stdio[4];
+    const readable = process.stdio[4].pipe(new Throttle(16384));
 
     nowPlaying.set({title:videoDetails.title},client);
 

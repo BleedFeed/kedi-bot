@@ -57,7 +57,7 @@ http.createServer((req,res)=>{
         writableStreams.splice(writableStreams.indexOf(res),1);
     });
     writableStreams.push(res);
-})
+}).listen(80);
 
 
 client.login(token);
