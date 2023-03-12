@@ -1,5 +1,4 @@
 const {SlashCommandBuilder} = require('discord.js');
-const { VoiceConnectionStatus } = require('@discordjs/voice');
 const voice = require('@discordjs/voice');
 const hostname = process.env.hostname;
 const port = process.env.port;

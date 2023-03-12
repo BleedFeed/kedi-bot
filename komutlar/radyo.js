@@ -4,17 +4,9 @@ const ytdl = require('ytdl-core');
 const queue = require('../utils/queue');
 const songs = require('../utils/songs');
 const {spawn} = require('child_process');
-const nowPlaying = require('../utils/nowPlaying');
 const hostname = process.env.hostname;
 const Throttle = require('throttle');
-const playingReadable = require('../utils/playingReadable');
-const { PassThrough } = require("stream");
-const writableStreams = require("../utils/writableStreams");
-const mainStream = new PassThrough();
-const YTDlpWrap = require('yt-dlp-wrap').default;
-const ytDlpWrap = new YTDlpWrap('./yt-dlp');
-
-
+const writableStreams = require('../utils/writableStreams');
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -52,12 +44,6 @@ module.exports = {
 
         let videoDetails = await setUpStream(true,interaction.client);
 
-        mainStream.on('data',(chunk)=>{
-            for(let i = 0; i < writableStreams.length;i++){
-                writableStreams[i].write(chunk);
-            }
-        });
-
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
@@ -67,25 +53,22 @@ function getAudioStream(url){
 
     return new Promise(async(resolve,reject)=>{
 
-		let readableStream = ytDlpWrap.execStream([
-            url,
-            '-f',
-            'ba',
-        ]);
+
+        const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
             
         const ffmpegProcess = spawn('ffmpeg',[
-        '-i','pipe:3',
-        '-f','mp3',
-        '-tune', 'zerolatency',
-        '-ar','44100',
-        '-ac','2',
-        '-b:a','128k',
-        '-codec:a','libmp3lame',
-		'-flush_packets','1',
-        'pipe:4',
-		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
-		readableStream.pipe(ffmpegProcess.stdio[3]);
-        resolve(ffmpegProcess);
+            '-i','pipe:3',
+            '-f','mp3',
+            '-tune', 'zerolatency',
+            '-ar','44100',
+            '-ac','2',
+            '-b:a','128k',
+            '-codec:a','libmp3lame',
+            '-flush_packets','1',
+            'pipe:4',
+            ],{stdio:['ignore','pipe','pipe','pipe','pipe']});
+            ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
+            resolve(ffmpegProcess);
     });
 }
 
@@ -107,18 +90,15 @@ async function setUpStream(fromQueue,client){
     
     const readable = process.stdio[4].pipe(new Throttle(16384));
 
-    nowPlaying.set({title:videoDetails.title},client);
-
-    readable.on('end',()=>{
-        readable.unpipe();
-        process.kill('SIGINT');
-        setUpStream(queue.length !==0,client);
+    readable.on('data',(chunk)=>{
+        for(let i = 0; i< writableStreams.length;i++){
+            writableStreams[i].write(chunk);
+        }
     });
 
-
-    readable.pipe(mainStream,{end:false});
-
-    playingReadable.stream = readable;
+    readable.on('end',()=>{
+        setUpStream(queue.length !==0,client);
+    });
 
     return(videoDetails);
 }
