@@ -7,6 +7,7 @@ const {spawn} = require('child_process');
 const hostname = process.env.hostname;
 const Throttle = require('throttle');
 const writableStreams = require('../utils/writableStreams');
+let isPlaying = false;
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -28,7 +29,7 @@ module.exports = {
         }
 
         queue.push(videoLink);
-        if(nowPlaying.playing.title){
+        if(){
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
@@ -99,6 +100,8 @@ async function setUpStream(fromQueue,client){
     readable.on('end',()=>{
         setUpStream(queue.length !==0,client);
     });
+
+    isPlaying = true;
 
     return(videoDetails);
 }
