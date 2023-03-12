@@ -8,7 +8,9 @@ const nowPlaying = require('../utils/nowPlaying');
 const hostname = process.env.hostname;
 const Throttle = require('throttle');
 const playingReadable = require('../utils/playingReadable');
-const nodeshout = require('nodeshout');
+const { PassThrough } = require("stream");
+const writableStreams = require("../utils/writableStreams");
+const mainStream = new PassThrough();
 
 
 module.exports = {
@@ -44,9 +46,14 @@ module.exports = {
                                 .setStyle(ButtonStyle.Link),
                 );
 
-        const shout = initNodeShout();
 
-        let videoDetails = await setUpStream(true,shout,interaction.client);
+        let videoDetails = await setUpStream(true,interaction.client);
+
+        mainStream.on('data',(chunk)=>{
+            for(let i = 0; i < writableStreams.length;i++){
+                writableStreams[i].write(chunk);
+            }
+        });
 
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
@@ -73,13 +80,13 @@ function getAudioStream(url){
 		],{stdio:['ignore','pipe','pipe','pipe','pipe']});
 		ytdlpProcess.stdio[1].pipe(ffmpegProcess.stdio[3]);
 		ffmpegProcess.on('close',()=>{
-			// ytdlpProcess.kill();
+			ytdlpProcess.kill();
 		})
         resolve(ffmpegProcess);
     });
 }
 
-async function setUpStream(fromQueue,shout,client){
+async function setUpStream(fromQueue,client){
 
     let videoDetails
 	let process;
@@ -99,50 +106,16 @@ async function setUpStream(fromQueue,shout,client){
 
     nowPlaying.set({title:videoDetails.title},client);
 
-
-    readable.on('data',async (chunk)=>{
-        readable.pause();
-        shout.send(chunk,chunk.length);
-        await new Promise(resolve => setTimeout(resolve,shout.delay()));
-        readable.resume();
-    });
-
     readable.on('end',()=>{
-        readable.destroy();
-        process.kill();
-        setUpStream(queue.length !==0,shout,client);
-
+        readable.unpipe();
+        process.kill('SIGINT');
+        setUpStream(queue.length !==0,client);
     });
 
 
-    readable.on('error',(err)=>{
-        console.log(err);
-    });
+    readable.pipe(mainStream,{end:false});
 
     playingReadable.stream = readable;
 
     return(videoDetails);
-}
-
-function initNodeShout(){
-    // Initalize
-nodeshout.init();
-
-// Create a shout instance
-const shout = nodeshout.create();
-
-// Configure it
-shout.setHost('localhost');
-shout.setPort(80);
-shout.setUser('source');
-shout.setPassword('hackme');
-shout.setMount('radyo');
-shout.setFormat(1); // 0=ogg, 1=mp3
-shout.setAudioInfo('bitrate', '128');
-shout.setAudioInfo('samplerate', '44100');
-shout.setAudioInfo('channels', '2');
-
-shout.open();
-
-return (shout);
 }
