@@ -84,15 +84,16 @@ function getAudioStream(url){
 
 async function setUpStream(fromQueue,client){
 
-    let videoDetails
+    let videoDetails;
 	let ffmpegProcess;
+    let song;
 
     if(fromQueue){
-        let song = queue[0]
+        song = queue[0]
         queue.shift();
     }
     else{
-        let song = songs[Math.floor(Math.random() * songs.length)];
+        song = songs[Math.floor(Math.random() * songs.length)];
     }
     
     videoDetails = (await getBasicInfo(song)).videoDetails;
