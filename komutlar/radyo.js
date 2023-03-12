@@ -3,7 +3,7 @@ const {getBasicInfo} = require('ytdl-core');
 require('dotenv').config();
 const {spawn} = require('child_process');
 const hostname = process.env.hostname;
-const {songs,queue} = require('../variables');
+const {songs,queue,writableStreams} = require('../variables');
 const variables = require('../variables');
 const ffmpeg = require('fluent-ffmpeg');
 const { PassThrough } = require("stream");
@@ -29,10 +29,18 @@ module.exports = {
         }
 
         queue.push(videoLink);
-        if(variables.playingStream !== null){
+        if(variables.process !== null){
             interaction.editReply({content:'Sıraya eklendi',ephemeral:true});
             return;
         }
+
+        const row = new ActionRowBuilder()
+                .addComponents(
+                        new ButtonBuilder()
+                                .setLabel('Radyo Link')
+                                .setURL(hostname + '/radyo')
+                                .setStyle(ButtonStyle.Link),
+                );
 
         nodeshout.init();
 
@@ -52,13 +60,6 @@ module.exports = {
 
         shout.open();
 
-        const row = new ActionRowBuilder()
-                .addComponents(
-                        new ButtonBuilder()
-                                .setLabel('Radyo Link')
-                                .setURL(hostname + '/radyo')
-                                .setStyle(ButtonStyle.Link),
-                );
 
 
         let videoDetails = await setUpStream(true,interaction.client,shout);
@@ -74,26 +75,17 @@ function getAudioStream(url){
 
 
         const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
-            
+
         const ffmpegProcess = ffmpeg(ytdlpProcess.stdio[1])
         .inputOptions(['-flush_packets','1'])
         .outputFormat('mp3')
         .audioChannels(2)
         .audioBitrate(128)
-        .audioFrequency(22050)
+        .audioFrequency(44100)
         .audioCodec('libmp3lame')
 
-        ffmpegProcess.on('error',(err)=>{
-            console.log(err);
-            ytdlpProcess.kill();
-        })
+        resolve(ffmpegProcess);
 
-        ffmpegProcess.on('close',(code,signal)=>{
-            console.log('exit code is : ' + code);
-            console.log('exit signal is : ' + signal);
-            ytdlpProcess.kill();
-        })
-        resolve(ffmpegProcess)
     });
 }
 
@@ -114,19 +106,19 @@ async function setUpStream(fromQueue,client,shout){
     videoDetails = (await getBasicInfo(song)).videoDetails;
     ffmpegProcess = await getAudioStream(song);
 
-    let readable = new PassThrough();
+    const readable = new PassThrough();
 
     ffmpegProcess.output(readable);
 
     readable.on('data',async (chunk)=>{
         readable.pause();
         shout.send(chunk,chunk.length);
-        await new Promise(resolve=> setTimeout(resolve,shout.delay()));
+        await new Promise(resolve => setTimeout(resolve,shout.delay()));
         readable.resume();
+
     });
 
     readable.on('end',()=>{
-        ffmpegProcess.ffmpegProc.stdin.write('q');
         setUpStream(queue.length !==0,client,shout);
     });
 
@@ -134,7 +126,7 @@ async function setUpStream(fromQueue,client,shout){
         console.log(err);
     })
 
-    variables.playingStream = readable;
+    variables.process = ffmpegProcess;
 
     client.user.setActivity(videoDetails.title, { type: ActivityType.Listening});
 
