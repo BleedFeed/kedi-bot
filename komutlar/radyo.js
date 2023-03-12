@@ -126,7 +126,7 @@ async function setUpStream(fromQueue,client,shout){
     });
 
     readable.on('end',()=>{
-        ffmpegProcess.stdin.write('q');
+        ffmpegProcess.ffmpegProc.stdin.write('q');
         setUpStream(queue.length !==0,client,shout);
     });
 
