@@ -57,9 +57,8 @@ function getAudioStream(url){
         const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
             
         const stream = ytdlpProcess.stdio[1];
-
-
-
+        
+        console.log(url);
 
         const ffmpegProcess = ffmpeg(stream)
         .inputOptions(['-re','-flush_packets','1'])
