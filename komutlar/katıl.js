@@ -29,7 +29,7 @@ module.exports = {
             adapterCreator: interaction.guild.voiceAdapterCreator,
         });
 
-        connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+        connection.on(voice.VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
             try {
                 await Promise.race([
                     entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
