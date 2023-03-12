@@ -21,7 +21,10 @@ module.exports = {
 
         const resource = voice.createAudioResource('http://13.50.73.94');
 
+        resource.on('')
+
         const player = voice.createAudioPlayer()
+
 
         const connection = voice.joinVoiceChannel({
             channelId: interaction.member.voice.channelId,
@@ -30,6 +33,7 @@ module.exports = {
         });
 
         connection.on(voice.VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+            
             try {
                 await Promise.race([
                     entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
@@ -43,9 +47,17 @@ module.exports = {
         });
 
         connection.on(voice.VoiceConnectionStatus.Ready, () => {
-            player.play(resource);
-            connection.subscribe(player);
+            play(resource,player,connection);
         });
 
     }
+}
+
+function play(resource,player,connection){
+    player.play(resource);
+    player.on('end',()=>{
+        const newResource = voice.createAudioResource('http://13.50.73.94');
+        play(newResource,player,connection);
+    })
+    connection.subscribe(player);
 }

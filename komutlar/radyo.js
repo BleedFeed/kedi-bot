@@ -88,16 +88,16 @@ async function setUpStream(fromQueue,client){
 	let ffmpegProcess;
 
     if(fromQueue){
-        videoDetails = (await getBasicInfo(queue[0])).videoDetails;
-        ffmpegProcess = await getAudioStream(queue[0]);
+        let song = queue[0]
         queue.shift();
     }
     else{
         let song = songs[Math.floor(Math.random() * songs.length)];
-        videoDetails = (await getBasicInfo(song)).videoDetails;
-        ffmpegProcess = await getAudioStream(song);
     }
     
+    videoDetails = (await getBasicInfo(song)).videoDetails;
+    ffmpegProcess = await getAudioStream(song);
+
     let readable = new PassThrough();
 
 
