@@ -23,7 +23,7 @@ module.exports = {
 
         const player = voice.createAudioPlayer()
 
-        const connection = joinVoiceChannel({
+        const connection = voice.joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator,
@@ -47,7 +47,5 @@ module.exports = {
             connection.subscribe(player);
         });
 
-
-        // TODO KATIL VE RADYOYU ÇALMAYA BAŞLA
     }
 }
