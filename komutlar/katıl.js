@@ -42,7 +42,7 @@ module.exports = {
             }
         });
 
-        connection.on(VoiceConnectionStatus.Ready, () => {
+        connection.on(voice.VoiceConnectionStatus.Ready, () => {
             player.play(resource);
             connection.subscribe(player);
         });
