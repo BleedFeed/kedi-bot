@@ -100,7 +100,7 @@ async function setUpStream(fromQueue,client,shout){
         queue.shift();
     }
     else{
-        song = songs[Math.floor(Math.random() * songs.length)];
+        song = songs[0];
     }
     
     videoDetails = (await getBasicInfo(song)).videoDetails;
