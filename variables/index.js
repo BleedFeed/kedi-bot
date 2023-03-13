@@ -1,5 +1,5 @@
 module.exports = {
     queue : [],
-    songs : ['https://www.youtube.com/watch?v=k1yYG0vMgQ8','https://www.youtube.com/watch?v=zd8IFDgQCUc'],
+    songs : ['https://youtu.be/8Xf6gyW_o0U'],
     process : null
 };
