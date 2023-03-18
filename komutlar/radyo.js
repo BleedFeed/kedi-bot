@@ -69,9 +69,6 @@ module.exports = {
             mainStream.pause();
             shout.send(chunk,chunk.length);
             await new Promise(resolve => setTimeout(resolve,shout.delay()));
-            if(!mainStream.readableEnded){
-                mainStream.resume();
-            }
         });
 
 
@@ -122,7 +119,7 @@ async function setUpStream(fromQueue,client,shout){
 
     ffmpegProcess.output(readable);
 
-    readable.pipe(mainStream,{end:true});
+    readable.pipe(mainStream,{end:false});
 
     readable.on('end',()=>{
         setUpStream(queue.length !==0,client,shout);
