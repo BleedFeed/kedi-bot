@@ -69,6 +69,7 @@ module.exports = {
             mainStream.pause();
             shout.send(chunk,chunk.length);
             await new Promise(resolve => setTimeout(resolve,shout.delay()));
+            mainStream.resume();
         });
 
 
