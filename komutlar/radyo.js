@@ -120,7 +120,7 @@ async function setUpStream(fromQueue,client,shout){
 
     ffmpegProcess.output(readable);
 
-    readable.pipe(mainStream);
+    readable.pipe(mainStream,{end:true});
 
     readable.on('end',()=>{
         setUpStream(queue.length !==0,client,shout);
