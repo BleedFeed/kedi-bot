@@ -66,10 +66,10 @@ module.exports = {
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
         mainStream.on('data',async ()=>{
-            readable.pause();
+            mainStream.pause();
             shout.send(chunk,chunk.length);
             await new Promise(resolve => setTimeout(resolve,shout.delay()));
-            readable.resume();
+            mainStream.resume();
         });
 
 
