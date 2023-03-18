@@ -123,6 +123,7 @@ async function setUpStream(fromQueue,client,shout){
     readable.pipe(mainStream,{end:false});
 
     readable.on('end',()=>{
+        readable.unpipe();
         setUpStream(queue.length !==0,client,shout);
     });
 
