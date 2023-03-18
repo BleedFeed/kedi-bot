@@ -8,6 +8,7 @@ const variables = require('../variables');
 const ffmpeg = require('fluent-ffmpeg');
 const { PassThrough } = require("stream");
 const nodeshout = require('nodeshout');
+const mainStream = new PassThrough();
 
 module.exports = {
     data : new SlashCommandBuilder()
@@ -64,6 +65,15 @@ module.exports = {
 
         let videoDetails = await setUpStream(true,interaction.client,shout);
 
+        mainStream.on('data',async ()=>{
+            readable.pause();
+            shout.send(chunk,chunk.length);
+            await new Promise(resolve => setTimeout(resolve,shout.delay()));
+            readable.resume();
+        });
+
+
+
         await interaction.editReply({content:videoDetails.title + ' çalıyor', components:[row]});
 
     }
@@ -110,13 +120,7 @@ async function setUpStream(fromQueue,client,shout){
 
     ffmpegProcess.output(readable);
 
-    readable.on('data',async (chunk)=>{
-        readable.pause();
-        shout.send(chunk,chunk.length);
-        await new Promise(resolve => setTimeout(resolve,shout.delay()));
-        readable.resume();
-
-    });
+    readable.pipe(mainStream);
 
     readable.on('end',()=>{
         setUpStream(queue.length !==0,client,shout);
