@@ -84,17 +84,22 @@ function getAudioStream(url){
     return new Promise(async(resolve,reject)=>{
 
 
-        const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
+        const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','output.mp3']);
 
-        const ffmpegProcess = ffmpeg(ytdlpProcess.stdio[1])
-        .inputOptions(['-flush_packets','1'])
-        .outputFormat('mp3')
-        .audioChannels(2)
-        .audioBitrate(128)
-        .audioFrequency(44100)
-        .audioCodec('libmp3lame')
+        ytdlpProcess.once('close',()=>{
+            
+            const ffmpegProcess = ffmpeg('./output.mp3')
+            .inputOptions(['-flush_packets','1'])
+            .outputFormat('mp3')
+            .audioChannels(2)
+            .audioBitrate(128)
+            .audioFrequency(44100)
+            .audioCodec('libmp3lame')
+    
+            resolve(ffmpegProcess);
+    
+        });
 
-        resolve(ffmpegProcess);
 
     });
 }
