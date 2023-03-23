@@ -89,9 +89,9 @@ function getAudioStream(url){
         ytdlpProcess.stdout.on('data',(chunk)=>{
             console.log(chunk.toString());
         })
-        
 
-        ytdlpProcess.once('exit',()=>{
+
+        ytdlpProcess.on('exit',()=>{
             console.log('sarki indi');
             const ffmpegProcess = ffmpeg('./output.webm')
             .inputOptions(['-flush_packets','1'])
