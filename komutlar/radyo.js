@@ -86,7 +86,7 @@ function getAudioStream(url){
 
         const ytdlpProcess = spawn('./yt-dlp',['-f','bestaudio[ext=webm]',url,'-o','output.webm']);
 
-        ytdlpProcess.once('close',()=>{
+        ytdlpProcess.once('exit',()=>{
             console.log('sarki indi');
             const ffmpegProcess = ffmpeg('./output.webm')
             .inputOptions(['-flush_packets','1'])
