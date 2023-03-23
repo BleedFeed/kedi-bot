@@ -84,32 +84,17 @@ function getAudioStream(url){
     return new Promise(async(resolve,reject)=>{
 
 
-        const ytdlpProcess = spawn('./yt-dlp',['-f','bestaudio[ext=webm]',url,'-o','output.webm']);
+        const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
 
-        ytdlpProcess.stdout.on('data',(chunk)=>{
-            console.log(chunk.toString());
-        })
+        const ffmpegProcess = ffmpeg(ytdlpProcess.stdio[1])
+        .inputOptions(['-flush_packets','1'])
+        .outputFormat('mp3')
+        .audioChannels(2)
+        .audioBitrate(128)
+        .audioFrequency(44100)
+        .audioCodec('libmp3lame')
 
-
-        ytdlpProcess.on('close',()=>{
-            console.log('close event');
-        })
-
-
-        ytdlpProcess.on('exit',()=>{
-            console.log('exit event');
-            const ffmpegProcess = ffmpeg('./output.webm')
-            .inputOptions(['-flush_packets','1'])
-            .outputFormat('mp3')
-            .audioChannels(2)
-            .audioBitrate(128)
-            .audioFrequency(44100)
-            .audioCodec('libmp3lame')
-    
-            resolve(ffmpegProcess);
-    
-        });
-
+        resolve(ffmpegProcess);
 
     });
 }
