@@ -84,11 +84,11 @@ function getAudioStream(url){
     return new Promise(async(resolve,reject)=>{
 
 
-        const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','output.mp3']);
+        const ytdlpProcess = spawn('./yt-dlp',['-f','bestaudio[ext=webm]',url,'-o','output.webm']);
 
         ytdlpProcess.once('close',()=>{
-            
-            const ffmpegProcess = ffmpeg('./output.mp3')
+            console.log('sarki indi');
+            const ffmpegProcess = ffmpeg('./output.webm')
             .inputOptions(['-flush_packets','1'])
             .outputFormat('mp3')
             .audioChannels(2)
