@@ -91,8 +91,13 @@ function getAudioStream(url){
         })
 
 
+        ytdlpProcess.on('close',()=>{
+            console.log('close event');
+        })
+
+
         ytdlpProcess.on('exit',()=>{
-            console.log('sarki indi');
+            console.log('exit event');
             const ffmpegProcess = ffmpeg('./output.webm')
             .inputOptions(['-flush_packets','1'])
             .outputFormat('mp3')
