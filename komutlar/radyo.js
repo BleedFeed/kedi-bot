@@ -84,7 +84,7 @@ function getAudioStream(url){
     return new Promise(async(resolve,reject)=>{
 
 
-        const ytdlpProcess = spawn('./yt-dlp',['-f','ba',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
+        const ytdlpProcess = spawn('./yt-dlp',['-f', 'ba', '--audio-quality','128', '-x','--audio-format','mp3','--concat-playlist','always',url,'-o','-'],{stdio:['ignore','pipe','ignore']});
 
         const ffmpegProcess = ffmpeg(ytdlpProcess.stdio[1])
         .inputOptions(['-flush_packets','1'])
